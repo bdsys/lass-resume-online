@@ -19,8 +19,8 @@ test.describe("Fallback content", () => {
 
     // The page should still show the name heading
     await expect(page.getByRole("heading", { name: /Andrew Lass/i })).toBeVisible();
-    // Navigation should still work
-    await expect(page.getByRole("link", { name: /portfolio/i })).toBeVisible();
+    // Navigation should still work — use exact name to avoid matching CTA + section card
+    await expect(page.getByRole("link", { name: "Portfolio", exact: true })).toBeVisible();
   });
 
   test("all stub routes return 200", async ({ page }) => {
