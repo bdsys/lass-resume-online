@@ -1,24 +1,28 @@
 # About Andrew Lass
 
-Senior SRE and Cloud Security Engineer with 12+ years designing, operating, and securing
-globally distributed systems at scale on AWS. Based in the Puget Sound area.
+Senior Cloud Security and Infrastructure Engineer with 12+ years architecting, securing, and
+automating enterprise-scale multi-cloud environments. Based in the Puget Sound area.
 
-I specialize in the intersection of security and reliability — building the controls and
-automation that keep large-scale production systems both available and defensible. My work
-spans DMZ perimeter architecture, WAF/IPS/IDS tuning, HashiCorp Vault secrets automation,
-DLP detection pipelines, and real-time observability.
+My work spans the full breadth of cloud infrastructure: **DMZ perimeter design**, multi-account
+governance at scale, network security (FortiGate fleet, WAF, Network Firewall, IPS/IDS),
+policy-as-code compliance (PCI DSS, SOC 2, SOX), and everything-as-code CI/CD pipelines.
+I'm as comfortable navigating a five-board FedRAMP governance review as I am writing the
+OpenTofu module that automates the firewall fleet it approves.
 
-Recent highlights include leading the multi-region DMZ 2.0 re-architecture at SAP Concur
-(AWS Gateway Load Balancer + FortiGate fleet across 7 regions), driving the OpenTofu migration
-for a 100+ appliance firewall fleet, and building agentic operational tooling with Claude Code.
+At SAP Concur I led the multi-region DMZ 2.0 re-architecture (Gateway Load Balancer-fronted
+FortiGate across 8+ global environments), drove the OpenTofu migration for 100+ security
+appliances, and built the internal `mcs-network-skills` Claude Code plugin that encodes five
+years of operational knowledge into agentic automation for the team.
 
-AWS GovCloud cleared. Always building. Usually breaking something intentionally.
+At Nintendo of America I built the cloud governance function from scratch — 100+ AWS accounts,
+20+ Azure subscriptions, centralized Control Tower, custom account vending, and hub-spoke
+network architecture for game development teams across the organization.
 
 ## What I'm working on
 
 - This portfolio site (you're looking at it)
-- Security automation tooling
-- Open-source DevSecOps contributions
+- AI-assisted infrastructure tooling and agentic operations
+- Open-source security automation
 
 ## Contact
 

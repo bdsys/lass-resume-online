@@ -1,0 +1,216 @@
+{
+  "name": "Andrew Lass",
+  "headline": "Senior Cloud Security & Infrastructure Engineer",
+  "pillars": [
+    "Cloud Security",
+    "Networking",
+    "Governance",
+    "Infrastructure",
+    "DevOps",
+    "Automation"
+  ],
+  "contact": {
+    "location": "Everett, WA",
+    "email": "andrew.lass2174@gmail.com",
+    "phone": "805-423-2994",
+    "github": "bdsys",
+    "linkedin": ""
+  },
+  "summary": "Senior Cloud Security and Infrastructure Engineer with 12+ years architecting, securing, and automating enterprise-scale multi-cloud environments on AWS (expert), Azure, and OCI. Proven track record designing DMZ perimeter architecture, multi-account governance frameworks, and everything-as-code CI/CD pipelines — at SAP Concur across 8+ global production environments and at Nintendo of America across 100+ AWS accounts and 20+ Azure subscriptions. Known for delivering at scale: Gateway Load Balancer-fronted DMZ re-architectures, OpenTofu firewall fleet migrations, FIPS-validated FedRAMP designs, and policy-as-code compliance automation for PCI DSS, SOC 2, and SOX. Always building. Always automating.",
+  "skills": [
+    {
+      "area": "Cloud Security",
+      "items": [
+        "AWS IAM (expert)",
+        "SCPs (Service Control Policies)",
+        "AWS WAF configuration & tuning",
+        "AWS Network Firewall",
+        "Amazon GuardDuty",
+        "AWS Security Hub",
+        "AWS KMS",
+        "HashiCorp Vault (PKI, AppRole, AWS IAM auth, OIDC)",
+        "Cloud Custodian (policy-as-code)",
+        "Threat modeling & least-privilege frameworks",
+        "FIPS 140-2/140-3",
+        "DLP (Data Loss Prevention)",
+        "PCI DSS · SOC 2 · SOX · CIS/NIST",
+        "GBaaS threat-feed automation"
+      ]
+    },
+    {
+      "area": "Networking",
+      "items": [
+        "VPC + hub-spoke topology",
+        "AWS Transit Gateway",
+        "AWS Gateway Load Balancer (GWLB)",
+        "DMZ perimeter architecture",
+        "FortiGate fleet (100+ appliances as code)",
+        "FortiManager (centralized management)",
+        "Palo Alto firewalls",
+        "F5 BIG-IP (LTM / APM / GTM)",
+        "Route53 / DNS (OctoDNS, split-horizon)",
+        "CloudFront / CDN (Akamai, Fastly)",
+        "IPS/IDS policy management",
+        "BGP · IPSec VPN · OSPF",
+        "IPv4/IPv6 dual-stack",
+        "AWS DirectConnect"
+      ]
+    },
+    {
+      "area": "Governance",
+      "items": [
+        "AWS Organizations",
+        "AWS Control Tower",
+        "Account Factory / vending (CDK + Python)",
+        "IAM Identity Center",
+        "Service Catalog",
+        "100+ AWS accounts · 20+ Azure subscriptions",
+        "Azure Policy · Management Groups",
+        "Cloud Custodian · AWS Config Rules",
+        "SCPs · automated remediation",
+        "Audit-evidence generation",
+        "SARB / SCORE / CACB approval workflows",
+        "FedRAMP (CTE-3) compliance",
+        "Vulnerability management at scale"
+      ]
+    },
+    {
+      "area": "Infrastructure",
+      "items": [
+        "AWS (EC2, ECS Fargate, Lambda, Auto Scaling)",
+        "Azure IaaS/PaaS (VMs, AKS, App Service)",
+        "Oracle Cloud Infrastructure (OCI)",
+        "VMware ESXi at scale (UCS hardware)",
+        "Linux fleet (RHEL, CentOS, Oracle Linux, Ubuntu)",
+        "Windows Server fleet admin & hardening",
+        "EKS / Kubernetes",
+        "Istio service mesh (mTLS)",
+        "IMDSv2 hardening"
+      ]
+    },
+    {
+      "area": "DevOps",
+      "items": [
+        "GitHub Enterprise + GitHub Actions CI/CD",
+        "AWS CodeBuild / CodePipeline",
+        "Jenkins",
+        "24x7 on-call & incident response",
+        "Splunk (12+ years)",
+        "CloudWatch · Prometheus · Grafana",
+        "Nagios (12+ years) · PagerDuty",
+        "Runbook / playbook authoring",
+        "MTTD/MTTR reduction & postmortem RCA",
+        "PR-gated progressive deployment"
+      ]
+    },
+    {
+      "area": "Automation",
+      "items": [
+        "Terraform / OpenTofu (primary IaC)",
+        "AWS CDK (TypeScript & Python)",
+        "CloudFormation / SAM",
+        "Ansible",
+        "Python (FastAPI, Django, Flask)",
+        "TypeScript / Node.js",
+        "Bash · PowerShell",
+        "PostgreSQL · DynamoDB · MongoDB · MySQL · MSSQL",
+        "Claude Code skills authoring (11-skill mcs-network-skills plugin)"
+      ]
+    }
+  ],
+  "experience": [
+    {
+      "company": "SAP (Concur)",
+      "title": "Senior Cloud Security & Infrastructure Engineer",
+      "location": "Bellevue, WA",
+      "start": "2021-06",
+      "end": "present",
+      "bullets": [
+        "Designed and led DMZ 2.0 — a multi-region Gateway Load Balancer-fronted FortiGate re-architecture replacing the legacy AWS perimeter across all commercial environments (Integration, US2, EU2, APJ1, Fabian US, Fabian EMEA); SARB-approved February 2023, final cutover August 2025.",
+        "Obtained five-board governance approval (SARB, SCORE, CACB, FIPS review, SDLC pen-test) for centralized FortiManager including a FIPS 140-validated design for the CTE-3 FedRAMP environment; onboarded all seven environments in under six months.",
+        "Led OpenTofu migration for the FortiGate fleet — bootstrapped the opentofu-deployer repository, authored 108 pull requests migrating from CloudFormation/Ansible to declarative IaC; first production cutover (FortiOS 7.4.11) completed May 2026.",
+        "Primary owner of Ansible-based firewall-pipeline managing the entire FortiGate fleet; executed continuous FortiOS upgrades 6.4 through 7.6, certificate lifecycle automation, password rotation, and IMDSv2 compliance hardening.",
+        "Closed 1,400+ vulnerability tickets (Tenable, AWS Inspector, Cloud Custodian, Orca, FIM, SIEM) across all environments — approximately 58% of all assigned work over five years.",
+        "Implemented IPv6 dual-stack across commercial and FedRAMP (CTE-3) environments totaling 124 tracked tickets; executed full CTE-3 reimplementation after initial rollout required revision.",
+        "Authored mcs-network-skills Claude Code plugin (11 skills) encoding five years of operational knowledge into agentic automation for vulnerability reporting, FortiGate health checks, change-request drafting, and team review.",
+        "Built everything-as-code CI/CD platform (GitHub Enterprise + AWS CodeBuild/CodePipeline) for PR-gated deployment of AWS infrastructure and FortiGate security configurations across 8+ global production environments; 795 PRs authored and 836 reviewed over five years.",
+        "Enforced PCI DSS, SOC 2, and SOX compliance using Cloud Custodian, AWS Config Rules, and SCPs; directly supported US and Japan audit and remediation cycles.",
+        "Automated secrets and certificate lifecycle (HashiCorp Vault PKI, AppRole, OIDC) eliminating manual rotation toil across the firewall and infrastructure fleet.",
+        "Operated full observability stack — Splunk (12+ years), CloudWatch, Prometheus, Grafana, GuardDuty — dashboards, anomaly detection, and automated triage runbooks across all environments.",
+        "Senior technical lead on global team of 20+; mentored engineers through architecture decisions and code review; contributed to annual roadmap and budget planning."
+      ]
+    },
+    {
+      "company": "Nintendo of America",
+      "title": "Senior Cloud Engineer — Platform Security & Governance",
+      "location": "Redmond, WA",
+      "start": "2017-11",
+      "end": "2021-06",
+      "bullets": [
+        "Architected and managed 100+ AWS accounts and 20+ Azure subscriptions (plus OCI) from the ground up — defining account structure, security baselines, cost allocation, and network topology in partnership with business units across the organization.",
+        "Built structured AWS Organization using Control Tower and custom CDK/Python account vending automation, enforcing security posture and compliance from day one for every new account.",
+        "Designed hub-spoke AWS VPC and Azure VNET architecture with Palo Alto firewalls; delivered CloudFront CDN, Route53 DNS governance, WAF integration, and least-privilege IAM frameworks.",
+        "Deployed GuardDuty, Cloud Custodian policy-as-code, and Azure Policy to automate governance controls and generate audit evidence organization-wide.",
+        "Built all platform automation via GitHub Enterprise CI/CD using AWS CDK, CloudFormation, and Python; authored operational runbooks and architecture diagrams.",
+        "Accelerated cloud adoption for game development teams through solutions architecture, proofs-of-concept, and office hours from design through production delivery."
+      ]
+    },
+    {
+      "company": "Puget Sound Energy",
+      "title": "Senior Systems Engineer",
+      "location": "Redmond, WA",
+      "start": "2017-11",
+      "end": "2018-11",
+      "bullets": [
+        "Operated large-scale VMware ESXi environment on UCS hardware; automated datacenter server migration of thousands of VMs using PowerShell and GitLab."
+      ]
+    },
+    {
+      "company": "Univar Inc.",
+      "title": "Senior Platform Engineer",
+      "location": "Redmond, WA",
+      "start": "2015-12",
+      "end": "2017-11",
+      "bullets": [
+        "Founded Cloud and Automation team for Fortune 500 company; designed Univar's AWS presence including DirectConnect for MPLS connectivity; implemented CloudFormation IaC and infrastructure automation using Ansible, Chef, and Python."
+      ]
+    },
+    {
+      "company": "Vix Technology",
+      "title": "System Operations Lead",
+      "location": "Seattle, WA",
+      "start": "2015-08",
+      "end": "2015-12",
+      "bullets": [
+        "Led team of six engineers across three US regions; operated fare payment systems for government transit authorities."
+      ]
+    },
+    {
+      "company": "ChemPoint Inc.",
+      "title": "Infrastructure Engineer",
+      "location": "Bellevue, WA",
+      "start": "2014-04",
+      "end": "2015-08",
+      "bullets": [
+        "System administration and monitoring for multinational organization; led IT engineering projects including MPLS network implementation and call center upgrades."
+      ]
+    },
+    {
+      "company": "MINDBODY",
+      "title": "Sr. Site Reliability Engineer",
+      "location": "San Luis Obispo, CA",
+      "start": "2012-10",
+      "end": "2014-04",
+      "bullets": [
+        "Automated and managed deployments; provided SRE mentoring."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "Cuesta College",
+      "field": "Computer Science",
+      "years": "2010–2012"
+    }
+  ]
+}

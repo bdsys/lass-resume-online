@@ -2,28 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { TerminalIntro } from "@/components/terminal-intro";
 import { getGitHubUser } from "@/lib/github";
-
-const SKILL_GROUPS = [
-  {
-    label: "Cloud & IaC",
-    skills: ["AWS (EKS, Lambda, ECS, IAM, Route53)", "Terraform / OpenTofu", "CloudFormation", "AWS GovCloud"],
-  },
-  {
-    label: "Security",
-    skills: ["WAF · IPS/IDS tuning", "HashiCorp Vault", "DLP detection pipelines", "Threat modeling", "GuardDuty"],
-  },
-  {
-    label: "SRE & Reliability",
-    skills: ["Kubernetes / Istio", "Incident response", "Splunk · ELK · Prometheus · Grafana", "On-call operations"],
-  },
-  {
-    label: "Development",
-    skills: ["Python · TypeScript · Bash", "FastAPI · Django · Express", "CI/CD (GitHub Actions, AWS CodeBuild)", "Ansible"],
-  },
-];
+import { getResume } from "@/lib/resume";
 
 export default async function HomePage() {
   const user = await getGitHubUser();
+  const resume = getResume();
 
   return (
     <>
@@ -55,7 +38,7 @@ export default async function HomePage() {
                   {user.name ?? user.login}
                 </h1>
                 <p className="mt-1 font-mono text-[var(--color-accent)] text-sm">
-                  Sr. SRE &amp; Cloud Security Engineer
+                  {resume.headline}
                 </p>
                 {user.location && (
                   <p className="mt-0.5 font-mono text-[var(--color-text-muted)] text-xs">
@@ -130,7 +113,7 @@ export default async function HomePage() {
               </div>
               <div className="pt-1 border-t border-[var(--color-border)]">
                 <p className="font-mono text-xs text-[var(--color-text-muted)] leading-relaxed">
-                  12+ years in cloud security, SRE, and infrastructure. AWS GovCloud cleared.
+                  {resume.pillars.join(" · ")}
                 </p>
               </div>
             </div>
@@ -149,17 +132,17 @@ export default async function HomePage() {
         >
           Core Skills
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {SKILL_GROUPS.map(({ label, skills }) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {resume.skills.map(({ area, items }) => (
             <div
-              key={label}
+              key={area}
               className="card-hover rounded-lg bg-[var(--color-bg-card)] p-4 space-y-3"
             >
               <h3 className="font-mono text-xs font-semibold text-[var(--color-accent)] uppercase tracking-widest">
-                {label}
+                {area}
               </h3>
               <ul className="space-y-1.5">
-                {skills.map((s) => (
+                {items.map((s) => (
                   <li key={s} className="flex items-start gap-1.5 text-sm text-[var(--color-text-muted)]">
                     <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-[var(--color-accent-dim)]" />
                     {s}

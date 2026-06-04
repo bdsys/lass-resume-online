@@ -9,20 +9,27 @@ PASS=0
 FAIL=0
 
 # ── Start server ─────────────────────────────────────────────────────────────
+# Kill any existing process on this port so we don't silently test stale content.
+if lsof -ti tcp:"$PORT" >/dev/null 2>&1; then
+  echo "Warning: killing existing process on port $PORT before starting test server."
+  lsof -ti tcp:"$PORT" | xargs kill -9 2>/dev/null || true
+  sleep 1
+fi
+
 npm run start -- -p "$PORT" &
 SERVER_PID=$!
 
 cleanup() {
   kill "$SERVER_PID" 2>/dev/null || true
   wait "$SERVER_PID" 2>/dev/null || true
-  rm -f /tmp/smoke_body
+  rm -f /tmp/smoke_body_$$
 }
 trap cleanup EXIT
 
 # ── Wait for ready (up to 30s) ───────────────────────────────────────────────
 echo "Waiting for server on port $PORT..."
 for i in $(seq 1 30); do
-  if curl -s -o /dev/null -w "%{http_code}" "$BASE/" 2>/dev/null | grep -q "200"; then
+  if curl -s -o /dev/null -w "%{http_code}" -H "Cache-Control: no-cache" "$BASE/" 2>/dev/null | grep -q "200"; then
     echo "Server ready."
     break
   fi
@@ -39,7 +46,10 @@ check() {
   local expect="$2"
   local url="${BASE}${path}"
 
-  STATUS=$(curl -s -o /tmp/smoke_body -w "%{http_code}" "$url")
+  # Cache-Control: no-cache forces Next.js ISR to serve fresh content rather
+  # than the stale pre-rendered cache that can persist across incremental builds.
+  STATUS=$(curl -s -o /tmp/smoke_body_$$ -w "%{http_code}" \
+    -H "Cache-Control: no-cache" "$url")
 
   if [ "$STATUS" != "200" ]; then
     echo "  FAIL  ${path}  — expected 200, got ${STATUS}"
@@ -47,7 +57,7 @@ check() {
     return
   fi
 
-  if ! grep -qi "$expect" /tmp/smoke_body; then
+  if ! grep -qi "$expect" /tmp/smoke_body_$$; then
     echo "  FAIL  ${path}  — 200 OK but '${expect}' not found in response"
     FAIL=$((FAIL + 1))
     return
@@ -64,8 +74,10 @@ echo "────────────────────────�
 
 # Homepage: core identity and content sections
 check "/"           "Andrew Lass"
-check "/"           "Sr. SRE"
-check "/"           "Cloud &amp; IaC"
+check "/"           "Senior Cloud Security"
+check "/"           "Cloud Security"
+check "/"           "Networking"
+check "/"           "Governance"
 check "/"           "bdsys@portfolio"
 
 # Stub routes — must return 200 (no 404/500)
