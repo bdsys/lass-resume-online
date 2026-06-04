@@ -1,0 +1,15 @@
+name = "lass-resume-online"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+main = ".open-next/worker.js"
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# KV namespace for caching GitHub API responses (~1h TTL)
+# Replace TODO_KV_NAMESPACE_ID with your actual KV namespace ID
+# Create one with: wrangler kv namespace create GITHUB_CACHE
+[[kv_namespaces]]
+binding = "GITHUB_CACHE"
+id = "TODO_REPLACE_WITH_YOUR_KV_NAMESPACE_ID"

@@ -1,0 +1,58 @@
+{
+  "_note": "Static fallback used when GitHub API is unavailable. Refresh with: npm run refresh-fallback",
+  "_fetched": "2026-06-04",
+  "user": {
+    "login": "bdsys",
+    "name": "Andrew Lass",
+    "bio": "Systems and network engineer, specializing in public cloud. Creating web apps, automations and infrastructure.",
+    "avatar_url": "https://avatars.githubusercontent.com/u/3820695?v=4",
+    "html_url": "https://github.com/bdsys",
+    "location": "Puget Sound",
+    "public_repos": 12,
+    "followers": 2,
+    "following": 3
+  },
+  "repos": [
+    {
+      "name": "perfect-day",
+      "description": "Perfect Day Web and Mobile",
+      "html_url": "https://github.com/bdsys/perfect-day",
+      "homepage": null,
+      "language": "Python",
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "topics": ["web"]
+    },
+    {
+      "name": "blacktrack",
+      "description": "Home inventory and appliance tracking system -- Django app",
+      "html_url": "https://github.com/bdsys/blacktrack",
+      "homepage": null,
+      "language": "Python",
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "topics": ["web"]
+    },
+    {
+      "name": "ecs-workshop",
+      "description": "AWS ECS and EKS workshop",
+      "html_url": "https://github.com/bdsys/ecs-workshop",
+      "homepage": null,
+      "language": null,
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "topics": ["cloud"]
+    },
+    {
+      "name": "py311-gh-actions-demo",
+      "description": "Python 3.11 GitHub Actions CI/CD demo",
+      "html_url": "https://github.com/bdsys/py311-gh-actions-demo",
+      "homepage": null,
+      "language": "Python",
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "topics": ["automation"]
+    }
+  ],
+  "pinnedRepos": []
+}

@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   Design tokens — security-tool dark aesthetic
+   ───────────────────────────────────────────── */
+@theme {
+  /* Backgrounds */
+  --color-bg:         #070d14;
+  --color-bg-surface: #0d1b2a;
+  --color-bg-card:    #0f1f31;
+  --color-bg-elevated:#132337;
+
+  /* Accent palette */
+  --color-accent:     #22d3ee; /* cyan-400  — primary highlight */
+  --color-accent-dim: #0e7490; /* cyan-800  — borders, hover */
+  --color-green:      #10b981; /* emerald-500 — terminal / success */
+  --color-green-dim:  #065f46; /* emerald-900 — success backgrounds */
+  --color-red:        #ef4444; /* red-500   — WAF block / danger */
+  --color-red-dim:    #7f1d1d; /* red-900   — danger backgrounds */
+  --color-yellow:     #f59e0b; /* amber-500 — warning */
+
+  /* Text */
+  --color-text:       #e2e8f0; /* slate-200 */
+  --color-text-muted: #64748b; /* slate-500 */
+  --color-text-dim:   #334155; /* slate-700 */
+
+  /* Borders */
+  --color-border:     #1e293b; /* slate-800 */
+  --color-border-bright: #22d3ee40; /* accent with alpha */
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Cascadia Code", "Fira Code", monospace;
+}
+
+/* ─────────────────────────────────────────────
+   Base styles — always dark
+   ───────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100dvh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar            { width: 6px; height: 6px; }
+::-webkit-scrollbar-track      { background: var(--color-bg); }
+::-webkit-scrollbar-thumb      { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover{ background: var(--color-accent-dim); }
+
+/* Selection */
+::selection {
+  background: var(--color-accent-dim);
+  color: var(--color-text);
+}
+
+/* ─────────────────────────────────────────────
+   Utility classes
+   ───────────────────────────────────────────── */
+.font-mono     { font-family: var(--font-mono); }
+
+/* Glowing accent text */
+.text-glow {
+  text-shadow: 0 0 20px var(--color-accent), 0 0 40px var(--color-accent-dim);
+}
+
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+  display: inline-block;
+  width: 0.6ch;
+  background: var(--color-accent);
+  vertical-align: text-bottom;
+  height: 1.1em;
+}
+
+/* Scanline overlay (decorative) */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.04) 3px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+}
+
+/* Card hover shimmer border */
+.card-hover {
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  border-color: var(--color-accent-dim);
+  box-shadow: 0 0 20px var(--color-accent-dim)40;
+}
