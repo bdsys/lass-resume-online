@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Smoke test: start the built Next.js app, curl every route, verify 200 + key content.
+# Usage: bash scripts/smoke.sh [port]  (default 3002)
+set -euo pipefail
+
+PORT=${1:-3002}
+BASE="http://localhost:${PORT}"
+PASS=0
+FAIL=0
+
+# ── Start server ─────────────────────────────────────────────────────────────
+npm run start -- -p "$PORT" &
+SERVER_PID=$!
+
+cleanup() {
+  kill "$SERVER_PID" 2>/dev/null || true
+  wait "$SERVER_PID" 2>/dev/null || true
+  rm -f /tmp/smoke_body
+}
+trap cleanup EXIT
+
+# ── Wait for ready (up to 30s) ───────────────────────────────────────────────
+echo "Waiting for server on port $PORT..."
+for i in $(seq 1 30); do
+  if curl -s -o /dev/null -w "%{http_code}" "$BASE/" 2>/dev/null | grep -q "200"; then
+    echo "Server ready."
+    break
+  fi
+  if [ "$i" -eq 30 ]; then
+    echo "ERROR: server did not become ready within 30s"
+    exit 1
+  fi
+  sleep 1
+done
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+check() {
+  local path="$1"
+  local expect="$2"
+  local url="${BASE}${path}"
+
+  STATUS=$(curl -s -o /tmp/smoke_body -w "%{http_code}" "$url")
+
+  if [ "$STATUS" != "200" ]; then
+    echo "  FAIL  ${path}  — expected 200, got ${STATUS}"
+    FAIL=$((FAIL + 1))
+    return
+  fi
+
+  if ! grep -qi "$expect" /tmp/smoke_body; then
+    echo "  FAIL  ${path}  — 200 OK but '${expect}' not found in response"
+    FAIL=$((FAIL + 1))
+    return
+  fi
+
+  echo "  PASS  ${path}  — 200 OK  \"${expect}\""
+  PASS=$((PASS + 1))
+}
+
+# ── Run checks ────────────────────────────────────────────────────────────────
+echo ""
+echo "Smoke tests → ${BASE}"
+echo "────────────────────────────────────────────────────"
+
+# Homepage: core identity and content sections
+check "/"           "Andrew Lass"
+check "/"           "Sr. SRE"
+check "/"           "Cloud &amp; IaC"
+check "/"           "bdsys@portfolio"
+
+# Stub routes — must return 200 (no 404/500)
+check "/portfolio"  "Portfolio"
+check "/resume"     "Resume"
+check "/security"   "WAF Demo"
+
+echo "────────────────────────────────────────────────────"
+echo "${PASS} passed, ${FAIL} failed"
+
+if [ "$FAIL" -gt 0 ]; then
+  exit 1
+fi
