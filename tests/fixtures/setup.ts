@@ -2,7 +2,7 @@
  * Playwright globalSetup — starts the GitHub API mock server before any tests run.
  * The mock port must match MOCK_PORT in playwright.config.ts (9998).
  */
-import { createMockServer } from "./mock-server.js";
+import { createMockServer } from "./mock-server";
 
 const MOCK_PORT = 9998;
 

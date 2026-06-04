@@ -7,13 +7,14 @@
 import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
-import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Use process.cwd() (project root) so this works in both ESM and CJS contexts
+// — Playwright's globalSetup loader is CJS; import.meta.url is unavailable there.
+const FIXTURES_DIR = path.join(process.cwd(), "tests", "fixtures");
 
 const FIXTURES: Record<string, string> = {
-  "/users/bdsys": path.join(__dirname, "github-user.json"),
-  "/users/bdsys/repos": path.join(__dirname, "github-repos.json"),
+  "/users/bdsys": path.join(FIXTURES_DIR, "github-user.json"),
+  "/users/bdsys/repos": path.join(FIXTURES_DIR, "github-repos.json"),
 };
 
 export function createMockServer(port: number, failMode = false) {
