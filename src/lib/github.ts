@@ -3,12 +3,21 @@
  *
  * Phase 1: user profile only (REST)
  * Phase 2: repos + GraphQL pinned repos (added in that phase)
+ *
+ * GITHUB_API_BASE — override the REST base URL (used by Playwright E2E to point
+ * at a local fixture mock server instead of the real GitHub API).
+ * Defaults to https://api.github.com.
  */
 
 import fallback from "../../data/github-fallback.json";
 
 const GITHUB_LOGIN = "bdsys";
 const CACHE_TTL_SECONDS = 3600; // 1 hour
+
+/** Base URL for REST API — overridable for testing */
+function apiBase(): string {
+  return process.env.GITHUB_API_BASE ?? "https://api.github.com";
+}
 
 export interface GitHubUser {
   login: string;
@@ -92,7 +101,7 @@ export async function getGitHubUser(): Promise<GitHubUser> {
 
   // 2. GitHub REST API
   try {
-    const res = await fetch(`https://api.github.com/users/${GITHUB_LOGIN}`, {
+    const res = await fetch(`${apiBase()}/users/${GITHUB_LOGIN}`, {
       headers: buildHeaders(),
       // Next.js cache: revalidate once per hour on the CDN / server side too
       next: { revalidate: CACHE_TTL_SECONDS },

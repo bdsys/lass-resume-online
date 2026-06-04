@@ -24,7 +24,6 @@ const LINE_PAUSE   = 320;  // ms after output before next prompt
 
 export function TerminalIntro() {
   const [lines, setLines] = useState<{ line: Line; text: string; done: boolean }[]>([]);
-  const [cursorVisible, setCursorVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,7 +70,8 @@ export function TerminalIntro() {
 
   // Scroll to bottom as lines appear
   useEffect(() => {
-    containerRef.current?.scrollTo({ top: containerRef.current.scrollHeight, behavior: "smooth" });
+    // scrollTo may be absent in jsdom (tests) — guard with optional call
+    containerRef.current?.scrollTo?.({ top: containerRef.current.scrollHeight, behavior: "smooth" });
   }, [lines]);
 
   return (
