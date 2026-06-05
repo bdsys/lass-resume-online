@@ -99,7 +99,7 @@ CI/CD via GitHub Actions is recommended. <!-- TODO: add workflow file in Phase 6
 
 See `docs/waf-isolation.md` for the full isolation architecture and deployment instructions.
 
-<!-- TODO: backfill with Fly.io app URL after Phase 4 -->
+**Live demo backend:** https://lass-waf-demo.fly.dev (Phase 4 — gate closed until Phase 5 WAF is wired)
 
 ---
 
