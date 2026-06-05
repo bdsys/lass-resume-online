@@ -9,7 +9,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     // E2E lives in tests/e2e/ and is run by Playwright, not Vitest
-    exclude: ["**/node_modules/**", "**/tests/e2e/**", "**/.open-next/**"],
+    exclude: ["**/node_modules/**", "**/tests/e2e/**", "**/.open-next/**", "**/waf-demo-app/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

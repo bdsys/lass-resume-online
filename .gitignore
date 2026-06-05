@@ -56,3 +56,6 @@ Thumbs.db
 
 # Visual brainstorming companion (superpowers)
 .superpowers/
+
+# Local secret references (never commit)
+.waf-secrets

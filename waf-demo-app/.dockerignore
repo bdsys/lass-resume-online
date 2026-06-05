@@ -1,0 +1,7 @@
+node_modules
+dist
+test
+.git
+*.md
+fly.toml
+vitest.config.ts

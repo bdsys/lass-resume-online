@@ -1,0 +1,4 @@
+This is the intended file to read via /api/file?name=subdir/note.txt.
+
+Nothing sensitive — this is the expected happy path for the endpoint.
+Try traversing up: /api/file?name=subdir/../secret-flag.txt

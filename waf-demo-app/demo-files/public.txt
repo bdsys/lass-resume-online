@@ -1,0 +1,6 @@
+Welcome to the WAF Demo.
+
+This file is the intended read target for the path traversal endpoint (/api/file?name=public.txt).
+
+Nothing sensitive here — it is publicly accessible by design.
+The "secret" is one directory up at secret-flag.txt and is reachable via traversal.
