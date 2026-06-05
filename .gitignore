@@ -53,3 +53,6 @@ next-env.d.ts
 # Windows ADS junk (WSL)
 *:Zone.Identifier
 Thumbs.db
+
+# Visual brainstorming companion (superpowers)
+.superpowers/

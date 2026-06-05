@@ -113,3 +113,55 @@ body {
   border-color: var(--color-accent-dim);
   box-shadow: 0 0 20px var(--color-accent-dim)40;
 }
+
+/* ── Print / Save-as-PDF ──────────────────────────────────────────────────── */
+/* Always renders in light/document mode regardless of active toggle.          */
+@media print {
+  nav,
+  footer,
+  .resume-controls {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  [data-resume] {
+    background: white !important;
+    color: #0f172a !important;
+    max-width: none !important;
+    padding: 1cm 1.5cm !important;
+  }
+
+  /* Flatten any dark-mode accent/light text to the document palette so the
+     PDF is clean regardless of which on-screen mode is active. */
+  [data-resume] * {
+    color: #0f172a !important;
+  }
+
+  [data-resume] .resume-muted,
+  [data-resume] .resume-muted * {
+    color: #64748b !important;
+  }
+
+  [data-resume] .resume-header {
+    border-color: #0f172a !important;
+  }
+
+  [data-resume] .resume-section-heading {
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  [data-resume] .resume-pill {
+    background: #e0f2fe !important;
+    color: #0369a1 !important;
+  }
+
+  /* Let long entries flow across page breaks instead of jumping the whole
+     block to the next page (which caused a half-page gap after EXPERIENCE). */
+  .resume-section-heading { break-after: avoid; }
+  .resume-entry-head { break-inside: avoid; break-after: avoid; }
+  .resume-experience-entry { break-inside: auto; }
+}
