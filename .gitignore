@@ -64,5 +64,5 @@ Thumbs.db
 infra/.terraform/
 infra/*.tfstate
 infra/*.tfstate.backup
-infra/.terraform.lock.hcl
+# NOTE: infra/.terraform.lock.hcl should be committed (pins provider version/hashes)
 infra/terraform.tfvars
