@@ -98,8 +98,9 @@ function buildHeaders(): HeadersInit {
   };
   // Optional: set GITHUB_TOKEN Worker secret to raise rate limits
   // and unlock GraphQL pinned repos query (Phase 2)
+  // Workers expose secrets on globalThis; Next.js dev reads from process.env
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const token = (globalThis as any).GITHUB_TOKEN as string | undefined;
+  const token = ((globalThis as any).GITHUB_TOKEN ?? process.env.GITHUB_TOKEN) as string | undefined;
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 }
@@ -207,8 +208,9 @@ const PINNED_QUERY = `{
  * KV cache → GitHub GraphQL → [].
  */
 export async function getPinnedRepos(): Promise<GitHubPinnedRepo[]> {
+  // Workers expose secrets on globalThis; Next.js dev reads from process.env
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const token = (globalThis as any).GITHUB_TOKEN as string | undefined;
+  const token = ((globalThis as any).GITHUB_TOKEN ?? process.env.GITHUB_TOKEN) as string | undefined;
   if (!token) return [];
 
   const cacheKey = `gh:pinned:${GITHUB_LOGIN}`;

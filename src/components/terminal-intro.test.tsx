@@ -5,7 +5,7 @@
  * at a basic level (we don't exhaustively replay the whole animation sequence).
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import { TerminalIntro } from "./terminal-intro";
 
 beforeEach(() => {
@@ -32,8 +32,9 @@ describe("TerminalIntro", () => {
 
   it("starts rendering command lines after mount", async () => {
     render(<TerminalIntro />);
-    // Advance timers to let the first character type
-    await vi.runAllTimersAsync();
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
     // After all timers run, the idle prompt $ should be visible
     const prompts = screen.getAllByText("$");
     expect(prompts.length).toBeGreaterThan(0);

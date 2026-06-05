@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getResume } from "@/lib/resume";
 
 interface Line {
   prompt: boolean;   // true = input line, false = output line
@@ -8,11 +9,13 @@ interface Line {
   color?: string;    // optional CSS color var name
 }
 
+const { headline, contact } = getResume();
+
 const SCRIPT: Line[] = [
   { prompt: true,  text: "whoami" },
   { prompt: false, text: "Andrew Lass", color: "var(--color-accent)" },
   { prompt: true,  text: "uname -a" },
-  { prompt: false, text: "Sr. SRE & Cloud Security Engineer — Puget Sound, WA" },
+  { prompt: false, text: `${headline} — ${contact.location}` },
   { prompt: true,  text: "cat skills.txt" },
   { prompt: false, text: "AWS  ·  Kubernetes  ·  WAF  ·  Terraform  ·  Python  ·  DevSecOps" },
   { prompt: true,  text: "ls interests/" },
