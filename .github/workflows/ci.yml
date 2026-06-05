@@ -37,11 +37,37 @@ jobs:
       - name: Unit tests (Vitest)
         run: npm run test
 
+  # ─── WAF demo: typecheck + Vitest + Docker smoke ─────────────────────────
+  waf:
+    name: WAF demo (typecheck · unit tests · Docker smoke)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waf-demo-app/package-lock.json
+
+      - name: Install waf-demo-app dependencies
+        run: cd waf-demo-app && npm ci
+
+      - name: Typecheck
+        run: cd waf-demo-app && npm run typecheck
+
+      - name: Unit tests (Vitest)
+        run: cd waf-demo-app && npm test
+
+      - name: Docker smoke test
+        run: bash scripts/waf-smoke.sh
+
   # ─── E2E: Playwright on ubuntu-22.04 (supported by Playwright binaries) ──
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-22.04
-    needs: quality        # only run E2E if quality gate passes
+    needs: [quality, waf]  # only run E2E if both quality gates pass
     steps:
       - uses: actions/checkout@v4
 

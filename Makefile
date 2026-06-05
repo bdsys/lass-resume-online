@@ -1,4 +1,5 @@
-.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all clean up down
+.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all clean up down \
+        test-waf test-waf-typecheck test-waf-smoke
 
 DEV_PORT   ?= 3000
 SMOKE_PORT ?= 3002
@@ -34,6 +35,21 @@ typecheck:
 test:
 	npm run test
 
+# ── WAF demo app (waf-demo-app/) ─────────────────────────────────────────────
+
+test-waf:
+	cd waf-demo-app && npm test
+
+test-waf-typecheck:
+	cd waf-demo-app && npm run typecheck
+
+# Builds the Docker image, starts an ephemeral container with a generated key,
+# runs 7 curl checks (health, gate, XSS, SQLi, traversal, jail), stops the container.
+# Requires Docker.
+
+test-waf-smoke:
+	@bash scripts/waf-smoke.sh
+
 # ── Smoke test ───────────────────────────────────────────────────────────────
 # Builds the app, starts it, curls every route, kills the server.
 # No browser required — runs anywhere.
@@ -51,10 +67,10 @@ test-e2e:
 	npm run test:e2e
 
 # ── Full local gate ──────────────────────────────────────────────────────────
-# content-check → typecheck → lint → unit tests → build + smoke
-# Playwright E2E is CI-only; push to dev/main to run it.
+# content-check → typecheck → lint → unit tests → waf tests + Docker smoke → build + smoke
+# Requires Docker (for test-waf-smoke). Playwright E2E is CI-only.
 
-test-all: content-check typecheck lint test test-smoke
+test-all: content-check typecheck test-waf-typecheck lint test test-waf test-waf-smoke test-smoke
 	@echo ""
 	@echo "✓ All local gates passed."
 	@echo "  Playwright E2E runs automatically on push to dev/main (GitHub Actions)."
