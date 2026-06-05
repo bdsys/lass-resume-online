@@ -79,8 +79,7 @@ test.describe("Homepage", () => {
 
   test("skills section renders with known categories", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText(/Cloud & IaC/i)).toBeVisible();
-    // Use heading role to avoid matching "Security" in nav, bio, and card descriptions
-    await expect(page.getByRole("heading", { name: "Security", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Cloud Security", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Infrastructure", exact: true })).toBeVisible();
   });
 });

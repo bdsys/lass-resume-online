@@ -10,13 +10,14 @@ FAIL=0
 
 # ── Start server ─────────────────────────────────────────────────────────────
 # Kill any existing process on this port so we don't silently test stale content.
-if lsof -ti tcp:"$PORT" >/dev/null 2>&1; then
+# ss -tlnp is reliable in WSL; lsof does not consistently detect listening sockets.
+if ss -tlnp 2>/dev/null | grep -q ":${PORT}[[:space:]]"; then
   echo "Warning: killing existing process on port $PORT before starting test server."
-  lsof -ti tcp:"$PORT" | xargs kill -9 2>/dev/null || true
+  ss -tlnp 2>/dev/null | grep ":${PORT}[[:space:]]" | grep -oP 'pid=\K[0-9]+' | xargs kill -9 2>/dev/null || true
   # Wait up to 5s for the port to be fully released
   for i in $(seq 1 5); do
     sleep 1
-    lsof -ti tcp:"$PORT" >/dev/null 2>&1 || break
+    ss -tlnp 2>/dev/null | grep -q ":${PORT}[[:space:]]" || break
     echo "  Waiting for port $PORT to be released (${i}s)..."
   done
 fi
