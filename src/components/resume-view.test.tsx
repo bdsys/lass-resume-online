@@ -95,22 +95,22 @@ describe("ResumeView", () => {
     expect(screen.getByText("2010–2012")).toBeInTheDocument();
   });
 
-  it("defaults to light mode", () => {
+  it("defaults to dark mode", () => {
     const { container } = render(<ResumeView resume={RESUME} />);
-    expect(container.querySelector('[data-mode="light"]')).toBeInTheDocument();
-  });
-
-  it("switches to dark mode when wrench button is clicked", () => {
-    const { container } = render(<ResumeView resume={RESUME} />);
-    fireEvent.click(screen.getByTitle("Portfolio view"));
     expect(container.querySelector('[data-mode="dark"]')).toBeInTheDocument();
   });
 
-  it("returns to light mode when briefcase button is clicked", () => {
+  it("switches to light mode when briefcase button is clicked", () => {
     const { container } = render(<ResumeView resume={RESUME} />);
-    fireEvent.click(screen.getByTitle("Portfolio view"));
     fireEvent.click(screen.getByTitle("Recruiter view"));
     expect(container.querySelector('[data-mode="light"]')).toBeInTheDocument();
+  });
+
+  it("returns to dark mode when wrench button is clicked", () => {
+    const { container } = render(<ResumeView resume={RESUME} />);
+    fireEvent.click(screen.getByTitle("Recruiter view"));
+    fireEvent.click(screen.getByTitle("Portfolio view"));
+    expect(container.querySelector('[data-mode="dark"]')).toBeInTheDocument();
   });
 
   it("calls window.print when Save PDF button is clicked", () => {

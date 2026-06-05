@@ -21,7 +21,7 @@ print-CSS-based PDF download.
 | Toggle placement | Floating corner buttons (fixed bottom-right) |
 | Typography | System sans-serif (modern), not classic serif |
 | PDF strategy | Print CSS + `window.print()` — no library |
-| Modes | Light (default, recruiter) / Dark (portfolio-matched) |
+| Modes | Dark (default, portfolio-matched) / Light (recruiter, PDF always prints light) |
 | Skills display | Pillar name pills only — not the full item lists |
 
 ---
@@ -36,7 +36,7 @@ Two files:
 - Renders `<ResumeView resume={resume} />`
 
 **`src/components/resume-view.tsx`** — `"use client"` component
-- Holds `mode: 'light' | 'dark'` state (default `'light'`)
+- Holds `mode: 'light' | 'dark'` state (default `'dark'`)
 - Renders the full resume layout + floating buttons
 - Applies `data-mode="light|dark"` on the root `<div>` for CSS targeting
 
@@ -112,14 +112,14 @@ In dark mode the container uses `var(--color-bg)`, blending with the rest of the
 
 ## Mode Toggle
 
-### Light mode (default — `data-mode="light"`)
+### Light mode (`data-mode="light"`) — also the forced PDF/print mode
 - Background: `#ffffff`
 - Text: `#0f172a` (slate-900)
 - Section headers: uppercase, `#0f172a`, border-bottom `#e2e8f0`
 - Muted text: `#475569` (slate-600)
 - Briefcase button: filled dark, active state
 
-### Dark mode (`data-mode="dark"`)
+### Dark mode (default — `data-mode="dark"`)
 - Uses portfolio CSS custom properties: `var(--color-bg)`, `var(--color-text)`, `var(--color-accent)`
 - Section headers: `var(--color-accent)` (cyan), border-bottom `var(--color-border)`
 - Muted text: `var(--color-text-muted)`

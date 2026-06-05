@@ -8,17 +8,17 @@ type Mode = "light" | "dark";
 
 const L = {
   container:       "bg-white text-slate-900",
-  header:          "border-b-2 border-slate-900",
-  headline:        "text-slate-600",
-  contact:         "text-slate-500",
+  header:          "resume-header border-b-2 border-slate-900",
+  headline:        "resume-muted text-slate-600",
+  contact:         "resume-muted text-slate-500",
   pill:            "resume-pill bg-sky-100 text-sky-700",
   sectionHeading:  "resume-section-heading text-slate-900 border-b border-slate-200",
   company:         "text-slate-900",
-  dateRange:       "text-slate-500",
-  role:            "text-slate-500",
+  dateRange:       "resume-muted text-slate-500",
+  role:            "resume-muted text-slate-500",
   bullet:          "text-slate-700",
   education:       "text-slate-900",
-  educationMuted:  "text-slate-500",
+  educationMuted:  "resume-muted text-slate-500",
   fabBriefcase:    "bg-slate-900 text-white shadow-md",
   fabWrench:       "bg-slate-100 border border-slate-200 text-slate-600",
   fabSave:         "bg-sky-700 text-white shadow-md",
@@ -26,24 +26,24 @@ const L = {
 
 const D = {
   container:       "bg-[var(--color-bg)] text-[var(--color-text)]",
-  header:          "border-b-2 border-[var(--color-accent-dim)]",
-  headline:        "text-[var(--color-accent)]",
-  contact:         "text-[var(--color-text-muted)]",
+  header:          "resume-header border-b-2 border-[var(--color-accent-dim)]",
+  headline:        "resume-muted text-[var(--color-accent)]",
+  contact:         "resume-muted text-[var(--color-text-muted)]",
   pill:            "resume-pill bg-[var(--color-accent-dim)] text-[var(--color-text)]",
   sectionHeading:  "resume-section-heading text-[var(--color-accent)] border-b border-[var(--color-border)]",
   company:         "text-[var(--color-text)]",
-  dateRange:       "text-[var(--color-text-muted)]",
-  role:            "text-[var(--color-text-muted)]",
+  dateRange:       "resume-muted text-[var(--color-text-muted)]",
+  role:            "resume-muted text-[var(--color-text-muted)]",
   bullet:          "text-[var(--color-text-muted)]",
   education:       "text-[var(--color-text)]",
-  educationMuted:  "text-[var(--color-text-muted)]",
+  educationMuted:  "resume-muted text-[var(--color-text-muted)]",
   fabBriefcase:    "bg-[var(--color-bg-elevated)] border border-[var(--color-border)] text-[var(--color-text-muted)]",
   fabWrench:       "bg-[var(--color-accent)] text-[var(--color-bg)] shadow-[0_0_12px_var(--color-accent)]",
   fabSave:         "bg-[var(--color-accent-dim)] text-[var(--color-text)]",
 };
 
 export function ResumeView({ resume }: { resume: Resume }) {
-  const [mode, setMode] = useState<Mode>("light");
+  const [mode, setMode] = useState<Mode>("dark");
   const c = mode === "light" ? L : D;
 
   return (
@@ -109,15 +109,17 @@ export function ResumeView({ resume }: { resume: Resume }) {
               key={`${exp.company}-${exp.start}`}
               className="resume-experience-entry"
             >
-              <div className="flex justify-between items-baseline">
-                <span className={`font-semibold text-base ${c.company}`}>{exp.company}</span>
-                <span className={`text-sm ${c.dateRange}`}>
-                  {formatDate(exp.start)} – {formatDate(exp.end)}
-                </span>
+              <div className="resume-entry-head">
+                <div className="flex justify-between items-baseline">
+                  <span className={`font-semibold text-base ${c.company}`}>{exp.company}</span>
+                  <span className={`text-sm ${c.dateRange}`}>
+                    {formatDate(exp.start)} – {formatDate(exp.end)}
+                  </span>
+                </div>
+                <p className={`text-sm mb-2 ${c.role}`}>
+                  {exp.title} · {exp.location}
+                </p>
               </div>
-              <p className={`text-sm mb-2 ${c.role}`}>
-                {exp.title} · {exp.location}
-              </p>
               <ul className="space-y-1.5">
                 {exp.bullets.map((bullet, i) => (
                   <li key={i} className={`text-sm flex gap-2 ${c.bullet}`}>

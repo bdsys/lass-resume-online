@@ -134,6 +134,21 @@ body {
     padding: 1cm 1.5cm !important;
   }
 
+  /* Flatten any dark-mode accent/light text to the document palette so the
+     PDF is clean regardless of which on-screen mode is active. */
+  [data-resume] * {
+    color: #0f172a !important;
+  }
+
+  [data-resume] .resume-muted,
+  [data-resume] .resume-muted * {
+    color: #64748b !important;
+  }
+
+  [data-resume] .resume-header {
+    border-color: #0f172a !important;
+  }
+
   [data-resume] .resume-section-heading {
     color: #0f172a !important;
     border-color: #e2e8f0 !important;
@@ -144,7 +159,9 @@ body {
     color: #0369a1 !important;
   }
 
-  .resume-experience-entry {
-    break-inside: avoid;
-  }
+  /* Let long entries flow across page breaks instead of jumping the whole
+     block to the next page (which caused a half-page gap after EXPERIENCE). */
+  .resume-section-heading { break-after: avoid; }
+  .resume-entry-head { break-inside: avoid; break-after: avoid; }
+  .resume-experience-entry { break-inside: auto; }
 }
