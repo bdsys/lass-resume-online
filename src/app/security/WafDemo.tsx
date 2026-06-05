@@ -7,18 +7,12 @@ import type { WafDemoResult, AttackType } from "@/app/api/waf-demo/route";
 // Constants
 // ---------------------------------------------------------------------------
 
-const ATTACKS: { type: AttackType; label: string; badge: string }[] = [
-  { type: "xss",       label: "XSS Attack",     badge: "Reflected XSS" },
-  { type: "sqli",      label: "SQL Injection",   badge: "SQLi" },
-  { type: "traversal", label: "Path Traversal",  badge: "LFI" },
-  { type: "benign",    label: "Benign Request",  badge: "Control" },
+const ATTACKS: { type: AttackType; label: string }[] = [
+  { type: "xss",       label: "XSS Attack" },
+  { type: "sqli",      label: "SQL Injection" },
+  { type: "traversal", label: "Path Traversal" },
+  { type: "benign",    label: "Benign Request" },
 ];
-
-const RULE_NAMES: Partial<Record<AttackType, string>> = {
-  xss:       "XSS Attack blocked",
-  sqli:      "SQL Injection blocked",
-  traversal: "Path Traversal blocked",
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -32,7 +26,7 @@ function statusColor(status: number): string {
 
 function statusLabel(status: number): string {
   if (status === 200) return "200 OK";
-  if (status === 0)   return "0 TIMEOUT";
+  if (status === 0)   return "0 NETWORK ERROR";
   if (status === 403) return "403 Forbidden";
   return `${status}`;
 }
@@ -45,14 +39,12 @@ interface PanelProps {
   hostname: string;
   status: number | null;
   body: string | null;
-  cfRay?: string;
-  attackType?: AttackType | null;
   loading: boolean;
+  /** WAF-specific: show rule name + cf-ray when blocked */
+  wafInfo?: { ruleName: string | undefined; cfRay: string | undefined } | null;
 }
 
-function Panel({ hostname, status, body, cfRay, attackType, loading }: PanelProps) {
-  const isEmpty = status === null && !loading;
-
+function Panel({ hostname, status, body, loading, wafInfo }: PanelProps) {
   return (
     <div
       className={`rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 flex flex-col gap-2 transition-opacity ${
@@ -67,30 +59,30 @@ function Panel({ hostname, status, body, cfRay, attackType, loading }: PanelProp
       {/* Divider */}
       <div className="border-t border-[var(--color-border)]" />
 
-      {isEmpty && (
+      {status === null && !loading && (
         <p className="font-mono text-xs text-[var(--color-text-dim)] mt-1">
           &gt; Select an attack above
         </p>
       )}
 
-      {!isEmpty && status !== null && (
+      {status !== null && (
         <>
           {/* Status */}
           <p className={`font-mono text-sm font-semibold ${statusColor(status)}`}>
             STATUS {statusLabel(status)}
           </p>
 
-          {/* WAF rule info when blocked */}
-          {status === 403 && attackType && RULE_NAMES[attackType] && (
+          {/* WAF rule info — only shown on the protected panel when blocked */}
+          {wafInfo && status === 403 && (
             <div className="flex flex-col gap-0.5">
-              <p className="font-mono text-xs text-[var(--color-text-muted)]">
-                Rule: {RULE_NAMES[attackType]}
-              </p>
-              {cfRay !== undefined && (
-                <p className="font-mono text-xs text-[var(--color-text-dim)]">
-                  cf-ray: {cfRay ?? "—"}
+              {wafInfo.ruleName && (
+                <p className="font-mono text-xs text-[var(--color-text-muted)]">
+                  Rule: {wafInfo.ruleName}
                 </p>
               )}
+              <p className="font-mono text-xs text-[var(--color-text-dim)]">
+                cf-ray: {wafInfo.cfRay ?? "—"}
+              </p>
             </div>
           )}
 
@@ -117,12 +109,12 @@ function Panel({ hostname, status, body, cfRay, attackType, loading }: PanelProp
 // ---------------------------------------------------------------------------
 
 export function WafDemo() {
-  const [result, setResult]           = useState<WafDemoResult | null>(null);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState<string | null>(null);
+  const [result, setResult]             = useState<WafDemoResult | null>(null);
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState<string | null>(null);
   const [activeAttack, setActiveAttack] = useState<AttackType | null>(null);
 
-  async function fireAttack(attack: AttackType) {
+  async function runAttack(attack: AttackType) {
     setActiveAttack(attack);
     setResult(null);
     setError(null);
@@ -151,16 +143,17 @@ export function WafDemo() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" aria-live="polite" aria-atomic="false">
       {/* Attack buttons */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3" role="group" aria-label="Attack controls">
         {ATTACKS.map(({ type, label }) => {
           const isActive = activeAttack === type;
           return (
             <button
               key={type}
-              onClick={() => { void fireAttack(type); }}
+              onClick={() => { void runAttack(type); }}
               disabled={loading}
+              aria-pressed={isActive}
               className={`font-mono text-sm px-4 py-2 rounded border transition-colors
                 ${isActive
                   ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-bg-elevated)]"
@@ -193,7 +186,7 @@ export function WafDemo() {
         </div>
       )}
 
-      {/* Split panels */}
+      {/* Split panels — always shown when no error */}
       {!error && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -202,10 +195,9 @@ export function WafDemo() {
             </p>
             <Panel
               hostname="lass-waf-demo.fly.dev"
-              status={result ? result.direct.status : null}
-              body={result ? result.direct.body : null}
+              status={result?.direct.status ?? null}
+              body={result?.direct.body ?? null}
               loading={loading}
-              attackType={activeAttack}
             />
           </div>
           <div>
@@ -214,11 +206,14 @@ export function WafDemo() {
             </p>
             <Panel
               hostname="waf-demo.andrewlass.com"
-              status={result ? result.waf.status : null}
-              body={result ? result.waf.body : null}
-              cfRay={result?.waf.cfRay}
+              status={result?.waf.status ?? null}
+              body={result?.waf.body ?? null}
               loading={loading}
-              attackType={activeAttack}
+              wafInfo={result ? {
+                // result.label is the attack label from the server (e.g. "SQL Injection")
+                ruleName: result.waf.status === 403 ? `${result.label} blocked` : undefined,
+                cfRay:    result.waf.cfRay,
+              } : null}
             />
           </div>
         </div>
