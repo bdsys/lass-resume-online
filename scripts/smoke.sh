@@ -13,7 +13,12 @@ FAIL=0
 if lsof -ti tcp:"$PORT" >/dev/null 2>&1; then
   echo "Warning: killing existing process on port $PORT before starting test server."
   lsof -ti tcp:"$PORT" | xargs kill -9 2>/dev/null || true
-  sleep 1
+  # Wait up to 5s for the port to be fully released
+  for i in $(seq 1 5); do
+    sleep 1
+    lsof -ti tcp:"$PORT" >/dev/null 2>&1 || break
+    echo "  Waiting for port $PORT to be released (${i}s)..."
+  done
 fi
 
 npm run start -- -p "$PORT" &
@@ -80,8 +85,11 @@ check "/"           "Networking"
 check "/"           "Governance"
 check "/"           "bdsys@portfolio"
 
+# Portfolio: live repo data (API or fallback both include lass-resume-online)
+check "/portfolio"  "bdsys"
+check "/portfolio"  "lass-resume-online"
+
 # Stub routes — must return 200 (no 404/500)
-check "/portfolio"  "Portfolio"
 check "/resume"     "Resume"
 check "/security"   "WAF Demo"
 

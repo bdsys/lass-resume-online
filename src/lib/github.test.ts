@@ -5,23 +5,46 @@
  * All network calls are mocked; no real HTTP is made.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getGitHubUser } from "./github";
+import { getGitHubUser, getRepositories, getPinnedRepos } from "./github";
 
 // Use a dedicated fallback name so tests can assert on it
+// vi.mock factories are hoisted before variable declarations, so we use vi.hoisted()
+const { FALLBACK_REPO } = vi.hoisted(() => ({
+  FALLBACK_REPO: {
+    name:             "fallback-repo",
+    description:      "A fallback repo",
+    html_url:         "https://github.com/bdsys/fallback-repo",
+    homepage:         null,
+    language:         "Python",
+    stargazers_count: 0,
+    pushed_at:        "2024-01-01T00:00:00Z",
+    topics:           ["cloud"],
+  },
+}));
+
 vi.mock("../../data/github-fallback.json", () => ({
   default: {
     user: {
-      login: "bdsys",
-      name: "Fallback User",
-      bio: "Static fallback bio",
-      avatar_url: "https://example.com/avatar.png",
-      html_url: "https://github.com/bdsys",
-      location: "Fallback Location",
+      login:        "bdsys",
+      name:         "Fallback User",
+      bio:          "Static fallback bio",
+      avatar_url:   "https://example.com/avatar.png",
+      html_url:     "https://github.com/bdsys",
+      location:     "Fallback Location",
       public_repos: 5,
-      followers: 1,
-      following: 1,
+      followers:    1,
+      following:    1,
     },
-    repos: [],
+    repos:       [{
+      name:             "fallback-repo",
+      description:      "A fallback repo",
+      html_url:         "https://github.com/bdsys/fallback-repo",
+      homepage:         null,
+      language:         "Python",
+      stargazers_count: 0,
+      pushed_at:        "2024-01-01T00:00:00Z",
+      topics:           ["cloud"],
+    }],
     pinnedRepos: [],
   },
 }));
@@ -118,6 +141,82 @@ describe("static fallback", () => {
     const result = await getGitHubUser();
 
     expect(result.name).toBe("Fallback User");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getRepositories
+// ---------------------------------------------------------------------------
+
+describe("getRepositories", () => {
+  it("uses static fallback when fetch throws", async () => {
+    vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error("network error"));
+    const repos = await getRepositories();
+    expect(repos).toHaveLength(1);
+    expect(repos[0].name).toBe("fallback-repo");
+  });
+
+  it("returns repos from API when fetch succeeds", async () => {
+    const liveRepos = [
+      { name: "live-repo", description: null, html_url: "https://github.com/bdsys/live-repo",
+        homepage: null, language: "TypeScript", stargazers_count: 1,
+        pushed_at: "2026-01-01T00:00:00Z", topics: [] },
+    ];
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue(liveRepos),
+    } as unknown as Response);
+
+    const repos = await getRepositories();
+    expect(repos[0].name).toBe("live-repo");
+  });
+
+  it("returns repos from KV cache when available", async () => {
+    const cached = [{ ...FALLBACK_REPO, name: "cached-repo" }];
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = {
+      get: vi.fn().mockResolvedValue(JSON.stringify(cached)),
+      put: vi.fn(),
+    };
+    const repos = await getRepositories();
+    expect(repos[0].name).toBe("cached-repo");
+    expect(vi.mocked(globalThis.fetch)).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getPinnedRepos
+// ---------------------------------------------------------------------------
+
+describe("getPinnedRepos", () => {
+  it("returns [] when GITHUB_TOKEN is not set", async () => {
+    const pinned = await getPinnedRepos();
+    expect(pinned).toEqual([]);
+    expect(vi.mocked(globalThis.fetch)).not.toHaveBeenCalled();
+  });
+
+  it("returns [] when GraphQL fetch fails", async () => {
+    (globalThis as Record<string, unknown>).GITHUB_TOKEN = "ghp_test";
+    vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error("network error"));
+    const pinned = await getPinnedRepos();
+    expect(pinned).toEqual([]);
+  });
+
+  it("returns pinned repos when token is set and API responds", async () => {
+    (globalThis as Record<string, unknown>).GITHUB_TOKEN = "ghp_test";
+    const nodes = [
+      { name: "pinned-repo", description: "Pinned!", url: "https://github.com/bdsys/pinned-repo",
+        primaryLanguage: { name: "Go", color: "#00ADD8" }, stargazerCount: 5,
+        pushedAt: "2026-05-01T00:00:00Z" },
+    ];
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ data: { user: { pinnedItems: { nodes } } } }),
+    } as unknown as Response);
+
+    const pinned = await getPinnedRepos();
+    expect(pinned).toHaveLength(1);
+    expect(pinned[0].name).toBe("pinned-repo");
+    expect(pinned[0].stargazerCount).toBe(5);
   });
 });
 
