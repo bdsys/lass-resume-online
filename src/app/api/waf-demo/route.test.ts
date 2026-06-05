@@ -14,17 +14,6 @@ import { POST } from "./route";
 // Test helpers
 // ---------------------------------------------------------------------------
 
-function makeMockFetch(status: number, body: string, headers: Record<string, string> = {}) {
-  return vi.fn().mockResolvedValue({
-    status,
-    ok: status >= 200 && status < 300,
-    text: vi.fn().mockResolvedValue(body),
-    headers: {
-      get: (key: string) => headers[key.toLowerCase()] ?? null,
-    },
-  } as unknown as Response);
-}
-
 function makeKV(cachedValue: unknown = null) {
   return {
     get: vi.fn().mockResolvedValue(
