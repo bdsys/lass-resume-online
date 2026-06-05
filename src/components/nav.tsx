@@ -18,7 +18,8 @@ export function Nav() {
           <span className="text-[var(--color-text-muted)]">&gt;</span>
           <span>AL</span>
           <span className="hidden sm:inline text-[var(--color-text-muted)] font-normal">
-            {" "}// Andrew Lass
+            {" "}
+            {"// Andrew Lass"}
           </span>
         </Link>
 

@@ -1,6 +1,7 @@
 {
   "_note": "Static fallback used when GitHub API is unavailable. Refresh with: npm run refresh-fallback",
   "_fetched": "2026-06-04",
+  "_topics_note": "Topics are suggested (docs/github-topic-schema.md). Apply via: gh repo edit --add-topic",
   "user": {
     "login": "bdsys",
     "name": "Andrew Lass",
@@ -8,11 +9,21 @@
     "avatar_url": "https://avatars.githubusercontent.com/u/3820695?v=4",
     "html_url": "https://github.com/bdsys",
     "location": "Puget Sound",
-    "public_repos": 12,
+    "public_repos": 13,
     "followers": 2,
     "following": 3
   },
   "repos": [
+    {
+      "name": "lass-resume-online",
+      "description": "Personal developer/security portfolio — Next.js on Cloudflare Workers with WAF demo",
+      "html_url": "https://github.com/bdsys/lass-resume-online",
+      "homepage": null,
+      "language": "TypeScript",
+      "stargazers_count": 0,
+      "pushed_at": "2026-06-04T23:36:54Z",
+      "topics": ["web", "tooling"]
+    },
     {
       "name": "perfect-day",
       "description": "Perfect Day Web and Mobile",
@@ -20,28 +31,28 @@
       "homepage": null,
       "language": "Python",
       "stargazers_count": 0,
-      "pushed_at": "2024-01-01T00:00:00Z",
+      "pushed_at": "2026-05-29T22:58:12Z",
       "topics": ["web"]
     },
     {
-      "name": "blacktrack",
-      "description": "Home inventory and appliance tracking system -- Django app",
-      "html_url": "https://github.com/bdsys/blacktrack",
-      "homepage": null,
-      "language": "Python",
-      "stargazers_count": 0,
-      "pushed_at": "2024-01-01T00:00:00Z",
-      "topics": ["web"]
-    },
-    {
-      "name": "ecs-workshop",
-      "description": "AWS ECS and EKS workshop",
-      "html_url": "https://github.com/bdsys/ecs-workshop",
+      "name": "tisports",
+      "description": "PoC of That's Interesting Platform with Sports use case",
+      "html_url": "https://github.com/bdsys/tisports",
       "homepage": null,
       "language": null,
       "stargazers_count": 0,
-      "pushed_at": "2024-01-01T00:00:00Z",
-      "topics": ["cloud"]
+      "pushed_at": "2026-05-08T16:40:59Z",
+      "topics": ["web"]
+    },
+    {
+      "name": "blacknight",
+      "description": "Sleep tracker",
+      "html_url": "https://github.com/bdsys/blacknight",
+      "homepage": null,
+      "language": "Python",
+      "stargazers_count": 0,
+      "pushed_at": "2026-03-05T01:28:07Z",
+      "topics": ["web", "automation"]
     },
     {
       "name": "py311-gh-actions-demo",
@@ -50,8 +61,88 @@
       "homepage": null,
       "language": "Python",
       "stargazers_count": 0,
-      "pushed_at": "2024-01-01T00:00:00Z",
+      "pushed_at": "2024-08-17T00:50:36Z",
       "topics": ["automation"]
+    },
+    {
+      "name": "ecs-workshop",
+      "description": "AWS ECS and EKS workshop",
+      "html_url": "https://github.com/bdsys/ecs-workshop",
+      "homepage": null,
+      "language": null,
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-15T18:55:07Z",
+      "topics": ["cloud"]
+    },
+    {
+      "name": "blacktrack",
+      "description": "Home inventory and appliance tracking system -- Django app",
+      "html_url": "https://github.com/bdsys/blacktrack",
+      "homepage": null,
+      "language": "Python",
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-15T18:03:08Z",
+      "topics": ["web"]
+    },
+    {
+      "name": "learning-stuff-2024",
+      "description": "learning-stuff-2024",
+      "html_url": "https://github.com/bdsys/learning-stuff-2024",
+      "homepage": null,
+      "language": "JavaScript",
+      "stargazers_count": 0,
+      "pushed_at": "2024-01-15T17:57:15Z",
+      "topics": ["learning"]
+    },
+    {
+      "name": "askamelia",
+      "description": "Alexa app for the bb",
+      "html_url": "https://github.com/bdsys/askamelia",
+      "homepage": null,
+      "language": "Python",
+      "stargazers_count": 0,
+      "pushed_at": "2022-11-23T01:27:19Z",
+      "topics": ["tooling"]
+    },
+    {
+      "name": "cloudformation-api-gateway",
+      "description": "CloudFormation API Gateway sample",
+      "html_url": "https://github.com/bdsys/cloudformation-api-gateway",
+      "homepage": null,
+      "language": "JavaScript",
+      "stargazers_count": 0,
+      "pushed_at": "2016-11-25T14:53:44Z",
+      "topics": ["cloud"]
+    },
+    {
+      "name": "admin.bdsys.net",
+      "description": "The Black Dog Systems Administrative Page",
+      "html_url": "https://github.com/bdsys/admin.bdsys.net",
+      "homepage": null,
+      "language": "JavaScript",
+      "stargazers_count": 0,
+      "pushed_at": "2013-05-19T23:42:57Z",
+      "topics": ["tooling"]
+    },
+    {
+      "name": "topListWebApp",
+      "description": "Top List web based application",
+      "html_url": "https://github.com/bdsys/topListWebApp",
+      "homepage": "dev.bdsys.net",
+      "language": "JavaScript",
+      "stargazers_count": 1,
+      "pushed_at": "2013-04-25T05:02:15Z",
+      "topics": ["web"]
+    },
+    {
+      "name": "stopcispa",
+      "description": "Stop Cispa",
+      "html_url": "https://github.com/bdsys/stopcispa",
+      "homepage": null,
+      "language": "JavaScript",
+      "stargazers_count": 0,
+      "pushed_at": "2013-04-24T17:20:04Z",
+      "topics": ["web"]
     }
   ],
   "pinnedRepos": []

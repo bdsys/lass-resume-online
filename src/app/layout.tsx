@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Nav }    from "@/components/nav";
 import { Footer } from "@/components/footer";
+import { getResume } from "@/lib/resume";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,34 +15,37 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const resume     = getResume();
+const titleFull  = `Andrew Lass — ${resume.headline}`;
+const ogDesc     = resume.pillars.join(" · ");
+
 export const metadata: Metadata = {
   title: {
-    default:  "Andrew Lass — Sr. SRE & Cloud Security Engineer",
+    default:  titleFull,
     template: "%s | Andrew Lass",
   },
   description:
-    "Personal portfolio of Andrew Lass — Senior SRE and Cloud Security Engineer specializing in AWS, Kubernetes, WAF, and DevSecOps.",
+    `Personal portfolio of Andrew Lass — ${resume.headline} specializing in cloud security, networking, and infrastructure automation.`,
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://andrewlass.dev", // TODO: update with real domain
+    type:     "website",
+    locale:   "en_US",
+    url:      "https://andrewlass.dev", // TODO: update with real domain
     siteName: "Andrew Lass",
-    title: "Andrew Lass — Sr. SRE & Cloud Security Engineer",
-    description:
-      "Senior SRE & Cloud Security Engineer. AWS · Kubernetes · WAF · Terraform.",
+    title:    titleFull,
+    description: ogDesc,
     images: [
       {
-        url: "https://avatars.githubusercontent.com/u/3820695?v=4",
-        width: 460,
+        url:    "https://avatars.githubusercontent.com/u/3820695?v=4",
+        width:  460,
         height: 460,
-        alt: "Andrew Lass",
+        alt:    "Andrew Lass",
       },
     ],
   },
   twitter: {
-    card: "summary",
-    title: "Andrew Lass — Sr. SRE & Cloud Security Engineer",
-    description: "Senior SRE & Cloud Security Engineer. AWS · Kubernetes · WAF.",
+    card:        "summary",
+    title:       titleFull,
+    description: ogDesc,
   },
   robots: { index: true, follow: true },
 };

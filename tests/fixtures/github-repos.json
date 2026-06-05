@@ -1,0 +1,32 @@
+[
+  {
+    "name": "blacktrack",
+    "description": "Home inventory and appliance tracking system -- Django app",
+    "html_url": "https://github.com/bdsys/blacktrack",
+    "homepage": null,
+    "language": "Python",
+    "stargazers_count": 0,
+    "pushed_at": "2024-03-01T00:00:00Z",
+    "topics": ["web"]
+  },
+  {
+    "name": "ecs-workshop",
+    "description": "AWS ECS and EKS workshop",
+    "html_url": "https://github.com/bdsys/ecs-workshop",
+    "homepage": null,
+    "language": null,
+    "stargazers_count": 0,
+    "pushed_at": "2024-02-01T00:00:00Z",
+    "topics": ["cloud"]
+  },
+  {
+    "name": "py311-gh-actions-demo",
+    "description": "Python 3.11 GitHub Actions CI/CD demo",
+    "html_url": "https://github.com/bdsys/py311-gh-actions-demo",
+    "homepage": null,
+    "language": "Python",
+    "stargazers_count": 0,
+    "pushed_at": "2024-01-01T00:00:00Z",
+    "topics": ["automation"]
+  }
+]
