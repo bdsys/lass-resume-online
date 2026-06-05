@@ -1,6 +1,17 @@
-.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all clean
+.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all clean up down
 
+DEV_PORT   ?= 3000
 SMOKE_PORT ?= 3002
+
+# ── Dev server ───────────────────────────────────────────────────────────────
+# Hot-reload Turbopack dev server, backgrounded. Distinct from test-smoke which
+# builds + serves the production output on SMOKE_PORT.
+
+up:
+	@bash scripts/dev.sh up $(DEV_PORT)
+
+down:
+	@bash scripts/dev.sh down $(DEV_PORT)
 
 # ── Content ───────────────────────────────────────────────────────────────────
 # Validates content/resume.yaml and regenerates src/data/resume.json.

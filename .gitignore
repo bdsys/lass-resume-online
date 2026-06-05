@@ -46,6 +46,10 @@ next-env.d.ts
 /worker.js
 .dev.vars
 
+# Dev server runtime artifacts (make up / make down)
+.dev.pid
+.dev.log
+
 # Windows ADS junk (WSL)
 *:Zone.Identifier
 Thumbs.db
