@@ -101,6 +101,8 @@ See `docs/waf-isolation.md` for the full isolation architecture and deployment i
 
 **Live demo backend:** https://lass-waf-demo.fly.dev (Phase 4 — gate closed until Phase 5 WAF is wired)
 
+<!-- TODO Phase 5: wire DEMO_KEY from .waf-secrets into the Cloudflare Worker as X-Demo-Key header, then delete .waf-secrets -->
+
 ---
 
 ## Repository structure
