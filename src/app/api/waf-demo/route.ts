@@ -16,7 +16,6 @@ export type AttackType = "xss" | "sqli" | "traversal" | "benign";
 interface AttackSpec {
   path: string;
   params: Record<string, string>;
-  label: string;
 }
 
 interface AttackResult {
@@ -26,6 +25,8 @@ interface AttackResult {
 }
 
 export interface WafDemoResult {
+  attack: AttackType;
+  label: string;
   direct: AttackResult;
   waf: AttackResult;
   cached: boolean;
@@ -47,26 +48,17 @@ const WAF_BASE    = "https://waf-demo.andrewlass.com";
 // ---------------------------------------------------------------------------
 
 const ATTACK_MAP: Record<AttackType, AttackSpec> = {
-  xss: {
-    path: "/api/echo",
-    params: { msg: "<script>alert(1)</script>" },
-    label: "Reflected XSS",
-  },
-  sqli: {
-    path: "/api/users",
-    params: { id: "1' OR '1'='1" },
-    label: "SQL Injection",
-  },
-  traversal: {
-    path: "/api/file",
-    params: { name: "../secret-flag.txt" },
-    label: "Path Traversal",
-  },
-  benign: {
-    path: "/api/users",
-    params: { id: "1" },
-    label: "Benign request",
-  },
+  xss:       { path: "/api/echo",  params: { msg: "<script>alert(1)</script>" } },
+  sqli:      { path: "/api/users", params: { id: "1' OR '1'='1" } },
+  traversal: { path: "/api/file",  params: { name: "../secret-flag.txt" } },
+  benign:    { path: "/api/users", params: { id: "1" } },
+};
+
+const ATTACK_LABELS: Record<AttackType, string> = {
+  xss:       "Reflected XSS",
+  sqli:      "SQL Injection",
+  traversal: "Path Traversal",
+  benign:    "Benign request",
 };
 
 const VALID_ATTACK_TYPES = new Set<string>(Object.keys(ATTACK_MAP));
@@ -81,7 +73,8 @@ type KVNamespace = {
 };
 
 function getKV(): KVNamespace | null {
-  // GITHUB_CACHE is bound in wrangler.toml; not available in local Next.js dev
+  // Reuses the shared GITHUB_CACHE KV binding (wrangler.toml) — no separate
+  // namespace needed for a 60-second demo cache. Not available in local next dev.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any).GITHUB_CACHE ?? null;
 }
@@ -145,12 +138,11 @@ async function fireAttack(
     const cfRay = res.headers.get("cf-ray") ?? undefined;
 
     return { status: res.status, body, ...(cfRay !== undefined && { cfRay }) };
-  } catch (err) {
-    const isAbort = err instanceof Error && err.name === "AbortError";
-    const msg = isAbort
-      ? "Request timed out or failed — Fly app may be cold-starting. Try again in a moment."
-      : "Request timed out or failed — Fly app may be cold-starting. Try again in a moment.";
-    return { status: 0, body: msg };
+  } catch {
+    return {
+      status: 0,
+      body: "Request timed out or failed — Fly app may be cold-starting. Try again in a moment.",
+    };
   } finally {
     clearTimeout(timer);
   }
@@ -179,11 +171,12 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "DEMO_KEY secret not configured" }, { status: 500 });
   }
 
-  // 3. KV cache check
+  // 3. KV cache check (stored payload omits `cached` field; add it on read)
   const cacheKey = `waf-demo:${attack}`;
-  const cached = await kvGet<WafDemoResult>(cacheKey);
-  if (cached) {
-    return Response.json({ ...cached, cached: true });
+  type StoredPayload = Omit<WafDemoResult, "cached">;
+  const hit = await kvGet<StoredPayload>(cacheKey);
+  if (hit) {
+    return Response.json({ ...hit, cached: true });
   }
 
   // 4. Fire both fetches concurrently
@@ -194,8 +187,9 @@ export async function POST(request: Request): Promise<Response> {
   ]);
 
   // 5. Shape result, KV store (non-blocking), return JSON
-  const result: WafDemoResult = { direct, waf, cached: false };
-  void kvSet(cacheKey, result); // fire-and-forget — never await
+  // Store without `cached` flag so the stored shape is neutral
+  const payload = { attack, label: ATTACK_LABELS[attack], direct, waf };
+  void kvSet(cacheKey, payload); // fire-and-forget — never await
 
-  return Response.json(result);
+  return Response.json({ ...payload, cached: false });
 }
