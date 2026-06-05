@@ -107,7 +107,7 @@ import type { Resume } from "@/lib/resume";
 const RESUME: Resume = {
   name: "Andrew Lass",
   headline: "Senior Cloud Security & Infrastructure Engineer",
-  summary: "Test summary.",
+  summary: "Experienced engineer specializing in cloud security and infrastructure automation.",
   pillars: ["Cloud Security", "Networking", "Infrastructure"],
   contact: {
     location: "Everett, WA",
@@ -161,6 +161,11 @@ describe("ResumeView", () => {
   it("omits linkedin when empty", () => {
     render(<ResumeView resume={RESUME} />);
     expect(screen.queryByText(/linkedin/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the summary paragraph", () => {
+    render(<ResumeView resume={RESUME} />);
+    expect(screen.getByText("Experienced engineer specializing in cloud security and infrastructure automation.")).toBeInTheDocument();
   });
 
   it("renders all pillars as pill badges", () => {
@@ -334,6 +339,11 @@ export function ResumeView({ resume }: { resume: Resume }) {
         ))}
       </div>
 
+      {/* Summary */}
+      <p className={`text-sm leading-relaxed mb-8 ${mode === "light" ? "text-slate-700" : "text-[var(--color-text-muted)]"}`}>
+        {resume.summary}
+      </p>
+
       {/* Experience */}
       <section className="mb-8">
         <h2 className={`text-xs font-bold uppercase tracking-widest pb-2 mb-5 ${c.sectionHeading}`}>
@@ -483,7 +493,7 @@ Expected: `13 passed`
 cd /home/andrew/lass-resume-online && npm run test
 ```
 
-Expected: `6 test files, 54 passed` (40 existing + 2 formatDate + 12 resume-view)
+Expected: `6 test files, 55 passed` (40 existing + 2 formatDate + 13 resume-view)
 
 - [ ] **Step 4: Commit**
 
@@ -603,6 +613,7 @@ Checklist:
 - [ ] White background, navy text, floating briefcase highlighted (active)
 - [ ] Name "Andrew Lass" at top-left, contact info at top-right
 - [ ] 6 blue pill badges below the header: Cloud Security, Networking, Governance, Infrastructure, DevOps, Automation
+- [ ] Summary paragraph renders between the pills and the Experience section
 - [ ] All 7 experience entries render with company, formatted date range, title, bullets
 - [ ] Education renders: "Cuesta College — Computer Science" with "2010–2012" right-aligned
 - [ ] LinkedIn is NOT shown (empty in data)

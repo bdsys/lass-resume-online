@@ -93,6 +93,12 @@ In dark mode the container uses `var(--color-bg)`, blending with the rest of the
 - Light mode: `bg-sky-100 text-sky-700`
 - Dark mode: `bg-[var(--color-accent-dim)] text-[var(--color-text)]`
 
+### Summary
+- Render `resume.summary` as a paragraph between pills and experience
+- Light mode: `text-slate-700`
+- Dark mode: `text-[var(--color-text-muted)]`
+- No section heading — flows naturally after the pills
+
 ### Experience
 - Section heading: small-caps uppercase label
 - Per entry: company name + date range (right-aligned), title + location (muted), bullet list
@@ -129,16 +135,19 @@ or a conditional `className` approach (simpler given two modes are mutually excl
 
 Fixed position, bottom-right: `fixed bottom-6 right-6 z-50 flex flex-col gap-2`
 
-Three buttons, 36×36px circular:
+Three buttons in the cluster:
 
-| Button | Icon | Action | Active state |
-|---|---|---|---|
-| Briefcase | Inline SVG | `setMode('light')` | Dark fill when light mode active |
-| Wrench | Inline SVG | `setMode('dark')` | Cyan fill + glow when dark mode active |
-| Print | Inline SVG | `window.print()` | No toggle state |
+| Button | Shape | Content | Action | Active state |
+|---|---|---|---|---|
+| Briefcase | 36×36px circle | Briefcase SVG | `setMode('light')` | Dark fill when light mode active |
+| Wrench | 36×36px circle | Wrench SVG | `setMode('dark')` | Cyan fill + glow when dark mode active |
+| Save PDF | Pill (auto-width) | 💾 floppy disk SVG + "PDF" label | `window.print()` | No toggle state |
+
+The Save PDF button is pill-shaped (rounded-full, `px-3 h-9`) rather than a circle so the
+"PDF" text fits naturally. It sits below the two mode-toggle circles in the same fixed cluster.
 
 Icons: inline SVG (no library dependency — only 3 icons needed).
-Lucide SVG paths: `Briefcase`, `Wrench`, `Printer` — copy paths directly from lucide.dev.
+Lucide SVG paths: `Briefcase`, `Wrench`, `Save` — copy paths directly from lucide.dev.
 
 ---
 
