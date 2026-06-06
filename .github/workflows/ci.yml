@@ -63,11 +63,34 @@ jobs:
       - name: Docker smoke test
         run: bash scripts/waf-smoke.sh
 
+  # ─── OpenTofu infra validation ───────────────────────────────────────────
+  # Validates HCL format + provider schema without needing backend credentials.
+  # -backend=false skips the R2 state backend so no secrets are required.
+  infra:
+    name: Infra (OpenTofu fmt + validate)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "latest"
+
+      - name: Format check
+        run: tofu fmt -check -recursive infra
+
+      - name: Init (no backend)
+        run: cd infra && tofu init -backend=false -input=false
+
+      - name: Validate
+        run: cd infra && tofu validate
+
   # ─── E2E: Playwright on ubuntu-22.04 (supported by Playwright binaries) ──
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-22.04
-    needs: [quality, waf]  # only run E2E if both quality gates pass
+    needs: [quality, waf, infra]  # only run E2E if all quality gates pass
     steps:
       - uses: actions/checkout@v4
 

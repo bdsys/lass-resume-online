@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Cloudflare build output — generated files, not source
+    ".open-next/**",
+    ".wrangler/**",
     // Separate package with its own tooling — exclude entirely
     "waf-demo-app/**",
   ]),

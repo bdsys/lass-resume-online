@@ -13,6 +13,7 @@
  *   → /api/* routes
  */
 import express from "express";
+import { cors } from "./middleware/cors";
 import { demoHeaders } from "./middleware/demo-headers";
 import { buildRateLimiter } from "./middleware/rate-limit";
 import { demoGate } from "./middleware/demo-gate";
@@ -36,7 +37,8 @@ export function buildApp(opts: AppOptions = {}): express.Express {
   // Using `1` rather than `true` satisfies express-rate-limit's proxy validation.
   app.set("trust proxy", 1);
 
-  // X-Demo-Notice on every response.
+  // CORS for the portfolio dashboard + X-Demo-Notice on every response.
+  app.use(cors);
   app.use(demoHeaders);
 
   // Gate-exempt routes.

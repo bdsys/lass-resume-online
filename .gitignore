@@ -59,3 +59,12 @@ Thumbs.db
 
 # Local secret references (never commit)
 .waf-secrets
+
+# OpenTofu / Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+# NOTE: infra/.terraform.lock.hcl should be committed (pins provider version/hashes)
+infra/terraform.tfvars
+infra/backend.tfvars
+infra/*.tfplan

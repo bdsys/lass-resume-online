@@ -8,8 +8,17 @@ directory = ".open-next/assets"
 binding = "ASSETS"
 
 # KV namespace for caching GitHub API responses (~1h TTL)
-# Replace TODO_KV_NAMESPACE_ID with your actual KV namespace ID
-# Create one with: wrangler kv namespace create GITHUB_CACHE
+# Get your real id with: wrangler kv namespace create GITHUB_CACHE
+# Then paste the output id here before deploying
 [[kv_namespaces]]
 binding = "GITHUB_CACHE"
-id = "TODO_REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "817bc5b66c5045838c854758a53c70f6"
+
+# Custom domains — managed here so `wrangler deploy` attaches them to the Worker
+[[routes]]
+pattern = "andrewlass.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.andrewlass.com"
+custom_domain = true

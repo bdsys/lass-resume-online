@@ -1,5 +1,5 @@
 .PHONY: build content-check lint typecheck test test-smoke test-e2e test-all clean up down \
-        test-waf test-waf-typecheck test-waf-smoke
+        test-waf test-waf-typecheck test-waf-smoke test-infra
 
 DEV_PORT   ?= 3000
 SMOKE_PORT ?= 3002
@@ -70,10 +70,23 @@ test-e2e:
 # content-check → typecheck → lint → unit tests → waf tests + Docker smoke → build + smoke
 # Requires Docker (for test-waf-smoke). Playwright E2E is CI-only.
 
-test-all: content-check typecheck test-waf-typecheck lint test test-waf test-waf-smoke test-smoke
+test-all: content-check typecheck test-waf-typecheck lint test test-waf test-waf-smoke test-infra test-smoke
 	@echo ""
 	@echo "✓ All local gates passed."
 	@echo "  Playwright E2E runs automatically on push to dev/main (GitHub Actions)."
+
+# ── OpenTofu infra validation ─────────────────────────────────────────────────
+# Validates HCL format and configuration without needing backend credentials.
+# Skips gracefully when tofu is not installed (e.g. on machines without OpenTofu).
+
+test-infra:
+	@if ! command -v tofu >/dev/null 2>&1; then \
+	  echo "ℹ  tofu not found — skipping infra validation (install OpenTofu to run locally)"; \
+	  exit 0; \
+	fi
+	tofu fmt -check -recursive infra
+	cd infra && tofu init -backend=false -input=false -upgrade
+	cd infra && tofu validate
 
 # ── Utilities ────────────────────────────────────────────────────────────────
 
