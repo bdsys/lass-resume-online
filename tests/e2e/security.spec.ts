@@ -11,7 +11,7 @@
  *   1. POST /api/waf-demo  → returns {direct, wafFetch:{url,demoKey}}
  *   2. Browser GET wafFetch.url → goes through WAF (blocked = TypeError, pass = 200)
  */
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 // ---------------------------------------------------------------------------
 // Shared WAF fetch URL patterns
@@ -71,7 +71,7 @@ const FIXTURES = {
 type AttackKey = keyof typeof FIXTURES;
 
 async function setupRoutes(
-  page: Parameters<Parameters<typeof test>[1]>[0]["page"],
+  page: Page,
   attack: AttackKey,
   wafOutcome: "pass" | "block",
 ) {

@@ -99,9 +99,7 @@ CI/CD via GitHub Actions is recommended. <!-- TODO: add workflow file in Phase 6
 
 See `docs/waf-isolation.md` for the full isolation architecture and deployment instructions.
 
-**Live demo backend:** https://lass-waf-demo.fly.dev (Phase 4 — gate closed until Phase 5 WAF is wired)
-
-<!-- TODO Phase 5: wire DEMO_KEY from .waf-secrets into the Cloudflare Worker as X-Demo-Key header, then delete .waf-secrets -->
+**Live demo backend:** https://lass-waf-demo.fly.dev — proxied through Cloudflare WAF at `waf-demo.andrewlass.com` (Phase 5 complete)
 
 ---
 
