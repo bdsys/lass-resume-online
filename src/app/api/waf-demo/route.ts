@@ -1,11 +1,16 @@
 /**
  * WAF demo proxy — POST /api/waf-demo
  *
- * Fires two live fetches per attack:
- *   1. Direct to Fly (lass-waf-demo.fly.dev)  → exploit succeeds
- *   2. Through Cloudflare WAF (waf-demo.andrewlass.com) → WAF blocks or passes
+ * Returns two things:
+ *   1. direct  — server-side fetch to Fly (lass-waf-demo.fly.dev), bypassing WAF.
+ *                Shows the raw exploit succeeding.
+ *   2. wafFetch — URL + demo key for the BROWSER to fetch directly.
+ *                Browser requests go through the real Cloudflare WAF edge,
+ *                unlike Worker subrequests which bypass same-zone WAF rules.
  *
- * The browser never sees DEMO_KEY or touches the backend directly.
+ * Why browser-side for the WAF path: Cloudflare Workers making subrequests to
+ * hostnames in the same zone skip WAF rule evaluation by design. Only external
+ * clients (browsers, curl, etc.) trigger WAF rules.
  */
 
 // This route calls external services at request time — always dynamic
@@ -18,17 +23,18 @@ interface AttackSpec {
   params: Record<string, string>;
 }
 
-interface AttackResult {
+export interface AttackResult {
   status: number;
   body: string;   // truncated to BODY_MAX_CHARS
-  cfRay?: string; // present only on WAF response when CF proxied it
+  cfRay?: string;
 }
 
 export interface WafDemoResult {
   attack: AttackType;
   label: string;
   direct: AttackResult;
-  waf: AttackResult;
+  /** Spec for a browser-side fetch to the WAF-protected endpoint. */
+  wafFetch: { url: string; demoKey: string };
   cached: boolean;
 }
 
@@ -36,9 +42,9 @@ export interface WafDemoResult {
 // Constants
 // ---------------------------------------------------------------------------
 
-const CACHE_TTL_SECONDS = 60;   // short TTL — demo needs to feel live
-const BODY_MAX_CHARS = 500;     // prevent huge responses from leaking into cache
-const FETCH_TIMEOUT_MS = 10_000; // Fly cold-starts from scale-to-zero can take ~5s
+const CACHE_TTL_SECONDS = 60;
+const BODY_MAX_CHARS = 500;
+const FETCH_TIMEOUT_MS = 10_000;
 
 const DIRECT_BASE = "https://lass-waf-demo.fly.dev";
 const WAF_BASE    = "https://waf-demo.andrewlass.com";
@@ -73,8 +79,6 @@ type KVNamespace = {
 };
 
 function getKV(): KVNamespace | null {
-  // Reuses the shared GITHUB_CACHE KV binding (wrangler.toml) — no separate
-  // namespace needed for a 60-second demo cache. Not available in local next dev.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any).GITHUB_CACHE ?? null;
 }
@@ -105,7 +109,6 @@ async function kvSet<T>(key: string, value: T): Promise<void> {
 // ---------------------------------------------------------------------------
 
 function getDemoKey(): string {
-  // Workers expose secrets on globalThis; Next.js dev reads from process.env
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return ((globalThis as any).DEMO_KEY ?? process.env.DEMO_KEY ?? "") as string;
 }
@@ -149,8 +152,24 @@ async function fireAttack(
 }
 
 // ---------------------------------------------------------------------------
+// WAF URL builder
+// ---------------------------------------------------------------------------
+
+function buildWafUrl(attack: AttackType): string {
+  const spec = ATTACK_MAP[attack];
+  const url = new URL(spec.path, WAF_BASE);
+  for (const [k, v] of Object.entries(spec.params)) {
+    url.searchParams.set(k, v);
+  }
+  return url.toString();
+}
+
+// ---------------------------------------------------------------------------
 // POST handler
 // ---------------------------------------------------------------------------
+
+// Stored shape omits cached + demoKey (key is runtime-only, never persisted)
+type StoredPayload = { attack: AttackType; label: string; direct: AttackResult; wafUrl: string };
 
 export async function POST(request: Request): Promise<Response> {
   // 1. Parse and validate attack type
@@ -171,25 +190,30 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "DEMO_KEY secret not configured" }, { status: 500 });
   }
 
-  // 3. KV cache check (stored payload omits `cached` field; add it on read)
+  // 3. KV cache check — demoKey is added at response time, never stored
   const cacheKey = `waf-demo:${attack}`;
-  type StoredPayload = Omit<WafDemoResult, "cached">;
   const hit = await kvGet<StoredPayload>(cacheKey);
   if (hit) {
-    return Response.json({ ...hit, cached: true });
+    return Response.json({
+      ...hit,
+      wafFetch: { url: hit.wafUrl, demoKey },
+      cached: true,
+    });
   }
 
-  // 4. Fire both fetches concurrently
+  // 4. Fetch direct path server-side (bypasses WAF by design — shows raw exploit)
   const spec = ATTACK_MAP[attack];
-  const [direct, waf] = await Promise.all([
-    fireAttack(DIRECT_BASE, spec, demoKey),
-    fireAttack(WAF_BASE, spec, demoKey),
-  ]);
+  const direct = await fireAttack(DIRECT_BASE, spec, demoKey);
 
-  // 5. Shape result, KV store (non-blocking), return JSON
-  // Store without `cached` flag so the stored shape is neutral
-  const payload = { attack, label: ATTACK_LABELS[attack], direct, waf };
-  void kvSet(cacheKey, payload); // fire-and-forget — never await
+  // 5. Build WAF URL for browser-side fetch (real external request → WAF fires)
+  const wafUrl = buildWafUrl(attack);
 
-  return Response.json({ ...payload, cached: false });
+  const payload: StoredPayload = { attack, label: ATTACK_LABELS[attack], direct, wafUrl };
+  void kvSet(cacheKey, payload);
+
+  return Response.json({
+    ...payload,
+    wafFetch: { url: wafUrl, demoKey },
+    cached: false,
+  });
 }

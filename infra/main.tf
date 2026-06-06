@@ -39,18 +39,32 @@ resource "cloudflare_dns_record" "waf_demo" {
   comment = "WAF demo backend — proxied through CF WAF"
 }
 
-# Worker custom domain — apex
-resource "cloudflare_workers_custom_domain" "apex" {
-  account_id = var.account_id
-  zone_id    = var.zone_id
-  hostname   = "andrewlass.com"
-  service    = var.worker_name
+# Origin Rule: override SNI to lass-waf-demo.fly.dev so the TLS handshake
+# succeeds (Fly's cert is *.fly.dev, not waf-demo.andrewlass.com).
+resource "cloudflare_ruleset" "origin_sni_override" {
+  zone_id = var.zone_id
+  name    = "WAF Demo Origin Rules"
+  kind    = "zone"
+  phase   = "http_request_origin"
+
+  rules = [
+    {
+      description = "Use Fly hostname as SNI for waf-demo origin"
+      enabled     = true
+      action      = "route"
+      action_parameters = {
+        origin = {
+          host = var.fly_hostname
+          port = 443
+        }
+        sni = {
+          value = var.fly_hostname
+        }
+      }
+      expression = "http.host eq \"waf-demo.andrewlass.com\""
+    }
+  ]
 }
 
-# Worker custom domain — www
-resource "cloudflare_workers_custom_domain" "www" {
-  account_id = var.account_id
-  zone_id    = var.zone_id
-  hostname   = "www.andrewlass.com"
-  service    = var.worker_name
-}
+# Worker custom domains (andrewlass.com + www) are managed by wrangler.toml,
+# not tofu — they are attached automatically on `npm run deploy`.

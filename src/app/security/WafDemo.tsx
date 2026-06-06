@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { WafDemoResult, AttackType } from "@/app/api/waf-demo/route";
+import type { WafDemoResult, AttackType, AttackResult } from "@/app/api/waf-demo/route";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -13,6 +13,8 @@ const ATTACKS: { type: AttackType; label: string }[] = [
   { type: "traversal", label: "Path Traversal" },
   { type: "benign",    label: "Benign Request" },
 ];
+
+const BODY_MAX_CHARS = 500;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -109,18 +111,25 @@ function Panel({ hostname, status, body, loading, wafInfo }: PanelProps) {
 // ---------------------------------------------------------------------------
 
 export function WafDemo() {
-  const [result, setResult]             = useState<WafDemoResult | null>(null);
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState<string | null>(null);
-  const [activeAttack, setActiveAttack] = useState<AttackType | null>(null);
+  const [directResult, setDirectResult]   = useState<AttackResult | null>(null);
+  const [wafResult, setWafResult]         = useState<AttackResult | null>(null);
+  const [resultLabel, setResultLabel]     = useState<string | null>(null);
+  const [loadingDirect, setLoadingDirect] = useState(false);
+  const [loadingWaf, setLoadingWaf]       = useState(false);
+  const [error, setError]                 = useState<string | null>(null);
+  const [activeAttack, setActiveAttack]   = useState<AttackType | null>(null);
 
   async function runAttack(attack: AttackType) {
     setActiveAttack(attack);
-    setResult(null);
+    setDirectResult(null);
+    setWafResult(null);
+    setResultLabel(null);
     setError(null);
-    setLoading(true);
+    setLoadingDirect(true);
+    setLoadingWaf(true);
 
     try {
+      // Phase 1: server-side direct fetch (shows raw exploit)
       const res = await fetch("/api/waf-demo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,15 +139,34 @@ export function WafDemo() {
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setError(data.error ?? `Server error: ${res.status}`);
+        setLoadingDirect(false);
+        setLoadingWaf(false);
         return;
       }
 
       const data = (await res.json()) as WafDemoResult;
-      setResult(data);
+      setDirectResult(data.direct);
+      setResultLabel(data.label);
+      setLoadingDirect(false);
+
+      // Phase 2: browser-side WAF fetch — real external request, WAF fires
+      try {
+        const wafRes = await fetch(data.wafFetch.url, {
+          headers: { "X-Demo-Key": data.wafFetch.demoKey },
+        });
+        const body = (await wafRes.text()).slice(0, BODY_MAX_CHARS);
+        const cfRay = wafRes.headers.get("cf-ray") ?? undefined;
+        setWafResult({ status: wafRes.status, body, ...(cfRay !== undefined && { cfRay }) });
+      } catch {
+        // WAF 403 blocks lack CORS headers → browser throws TypeError.
+        // We surface this as a confirmed block.
+        setWafResult({ status: 403, body: "Blocked by Cloudflare WAF" });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error — please try again.");
+      setLoadingDirect(false);
     } finally {
-      setLoading(false);
+      setLoadingWaf(false);
     }
   }
 
@@ -152,7 +180,7 @@ export function WafDemo() {
             <button
               key={type}
               onClick={() => { void runAttack(type); }}
-              disabled={loading}
+              disabled={loadingDirect || loadingWaf}
               aria-pressed={isActive}
               className={`font-mono text-sm px-4 py-2 rounded border transition-colors
                 ${isActive
@@ -168,7 +196,7 @@ export function WafDemo() {
       </div>
 
       {/* Loading indicator */}
-      {loading && (
+      {(loadingDirect || loadingWaf) && (
         <p className="font-mono text-xs text-[var(--color-text-muted)] animate-pulse">
           &gt; firing attack…{" "}
           <span className="text-[var(--color-text-dim)]">
@@ -178,7 +206,7 @@ export function WafDemo() {
       )}
 
       {/* Error state */}
-      {error && !loading && (
+      {error && !loadingDirect && !loadingWaf && (
         <div className="rounded-lg border border-[var(--color-red-dim)] bg-[var(--color-bg-card)] p-4">
           <p className="font-mono text-sm text-[var(--color-red)]">
             &gt; Error: {error}
@@ -195,9 +223,9 @@ export function WafDemo() {
             </p>
             <Panel
               hostname="lass-waf-demo.fly.dev"
-              status={result?.direct.status ?? null}
-              body={result?.direct.body ?? null}
-              loading={loading}
+              status={directResult?.status ?? null}
+              body={directResult?.body ?? null}
+              loading={loadingDirect}
             />
           </div>
           <div>
@@ -206,13 +234,12 @@ export function WafDemo() {
             </p>
             <Panel
               hostname="waf-demo.andrewlass.com"
-              status={result?.waf.status ?? null}
-              body={result?.waf.body ?? null}
-              loading={loading}
-              wafInfo={result ? {
-                // result.label is the attack label from the server (e.g. "SQL Injection")
-                ruleName: result.waf.status === 403 ? `${result.label} blocked` : undefined,
-                cfRay:    result.waf.cfRay,
+              status={wafResult?.status ?? null}
+              body={wafResult?.body ?? null}
+              loading={loadingWaf}
+              wafInfo={wafResult ? {
+                ruleName: wafResult.status === 403 ? `${resultLabel ?? ""} blocked` : undefined,
+                cfRay:    wafResult.cfRay,
               } : null}
             />
           </div>

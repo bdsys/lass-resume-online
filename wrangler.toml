@@ -12,7 +12,7 @@ binding = "ASSETS"
 # Then paste the output id here before deploying
 [[kv_namespaces]]
 binding = "GITHUB_CACHE"
-id = "TODO_REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "817bc5b66c5045838c854758a53c70f6"
 
 # Custom domains — managed here so `wrangler deploy` attaches them to the Worker
 [[routes]]

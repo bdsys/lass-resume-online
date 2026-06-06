@@ -2,8 +2,8 @@
  * Unit tests for src/app/api/waf-demo/route.ts
  *
  * Tests: input validation, DEMO_KEY guard, KV cache hit/miss,
- * X-Demo-Key injection on both fetches, fetch error → status:0,
- * and attack map URL correctness.
+ * X-Demo-Key injection on direct fetch, fetch error → status:0,
+ * attack map URL correctness, and result shape.
  *
  * All network calls are mocked; no real HTTP is made.
  */
@@ -95,16 +95,15 @@ describe("DEMO_KEY guard", () => {
 // ---------------------------------------------------------------------------
 
 describe("KV cache", () => {
-  it("returns cached result with cached:true on cache hit", async () => {
+  it("returns cached result with cached:true and injects demoKey on cache hit", async () => {
     const storedPayload = {
       attack: "xss",
       label: "Reflected XSS",
       direct: { status: 200, body: "ok" },
-      waf: { status: 403, body: "blocked" },
+      wafUrl: "https://waf-demo.andrewlass.com/api/echo?msg=%3Cscript%3E",
     };
     (globalThis as Record<string, unknown>).GITHUB_CACHE = makeKV(storedPayload);
 
-    // fetch should NOT be called on a cache hit
     vi.mocked(globalThis.fetch).mockImplementation(() => {
       throw new Error("fetch should not be called on cache hit");
     });
@@ -112,15 +111,17 @@ describe("KV cache", () => {
     const res = await POST(makeReq({ attack: "xss" }));
     expect(res.status).toBe(200);
 
-    const data = await res.json() as { cached: boolean; attack: string };
+    const data = await res.json() as { cached: boolean; attack: string; wafFetch: { url: string; demoKey: string } };
     expect(data.cached).toBe(true);
     expect(data.attack).toBe("xss");
+    expect(data.wafFetch.demoKey).toBe("test-demo-key");
+    expect(data.wafFetch.url).toBe(storedPayload.wafUrl);
 
     expect(vi.mocked(globalThis.fetch)).not.toHaveBeenCalled();
   });
 
-  it("fires two fetches on cache miss and writes KV", async () => {
-    const kv = makeKV(null); // cache miss
+  it("fires one direct fetch on cache miss and writes KV", async () => {
+    const kv = makeKV(null);
     (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
 
     vi.mocked(globalThis.fetch)
@@ -128,12 +129,6 @@ describe("KV cache", () => {
         status: 200,
         ok: true,
         text: vi.fn().mockResolvedValue("direct ok"),
-        headers: { get: () => null },
-      } as unknown as Response)
-      .mockResolvedValueOnce({
-        status: 403,
-        ok: false,
-        text: vi.fn().mockResolvedValue("blocked"),
         headers: { get: () => null },
       } as unknown as Response);
 
@@ -143,10 +138,9 @@ describe("KV cache", () => {
     const data = await res.json() as { cached: boolean };
     expect(data.cached).toBe(false);
 
-    // fetch was called twice (direct + WAF)
-    expect(vi.mocked(globalThis.fetch)).toHaveBeenCalledTimes(2);
+    // Only one fetch: direct. WAF fetch is browser-side.
+    expect(vi.mocked(globalThis.fetch)).toHaveBeenCalledTimes(1);
 
-    // KV put is fire-and-forget; give the microtask queue a tick to flush
     await Promise.resolve();
     expect(kv.put).toHaveBeenCalledOnce();
   });
@@ -157,14 +151,8 @@ describe("KV cache", () => {
 // ---------------------------------------------------------------------------
 
 describe("X-Demo-Key injection", () => {
-  it("injects X-Demo-Key on both direct and WAF fetches", async () => {
+  it("injects X-Demo-Key on the direct Fly fetch", async () => {
     vi.mocked(globalThis.fetch)
-      .mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        text: vi.fn().mockResolvedValue("ok"),
-        headers: { get: () => null },
-      } as unknown as Response)
       .mockResolvedValueOnce({
         status: 200,
         ok: true,
@@ -175,13 +163,24 @@ describe("X-Demo-Key injection", () => {
     await POST(makeReq({ attack: "benign" }));
 
     const calls = vi.mocked(globalThis.fetch).mock.calls;
-    expect(calls).toHaveLength(2);
+    expect(calls).toHaveLength(1);
 
-    const headers0 = calls[0][1]?.headers as Record<string, string> | undefined;
-    const headers1 = calls[1][1]?.headers as Record<string, string> | undefined;
+    const headers = calls[0][1]?.headers as Record<string, string> | undefined;
+    expect(headers?.["X-Demo-Key"]).toBe("test-demo-key");
+  });
 
-    expect(headers0?.["X-Demo-Key"]).toBe("test-demo-key");
-    expect(headers1?.["X-Demo-Key"]).toBe("test-demo-key");
+  it("includes demoKey in wafFetch for browser-side use", async () => {
+    vi.mocked(globalThis.fetch)
+      .mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        text: vi.fn().mockResolvedValue("ok"),
+        headers: { get: () => null },
+      } as unknown as Response);
+
+    const res = await POST(makeReq({ attack: "benign" }));
+    const data = await res.json() as { wafFetch: { demoKey: string } };
+    expect(data.wafFetch.demoKey).toBe("test-demo-key");
   });
 });
 
@@ -190,36 +189,15 @@ describe("X-Demo-Key injection", () => {
 // ---------------------------------------------------------------------------
 
 describe("error handling", () => {
-  it("returns status:0 in body when fetch throws, not a 500", async () => {
-    vi.mocked(globalThis.fetch)
-      .mockRejectedValueOnce(new Error("network error"))
-      .mockRejectedValueOnce(new Error("network error"));
+  it("returns status:0 in direct.body when fetch throws, not a 500", async () => {
+    vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error("network error"));
 
     const res = await POST(makeReq({ attack: "xss" }));
     expect(res.status).toBe(200);
 
-    const data = await res.json() as {
-      direct: { status: number; body: string };
-      waf: { status: number; body: string };
-    };
+    const data = await res.json() as { direct: { status: number; body: string } };
     expect(data.direct.status).toBe(0);
     expect(data.direct.body.length).toBeGreaterThan(0);
-  });
-
-  it("concurrent fetches — both errors return gracefully", async () => {
-    vi.mocked(globalThis.fetch)
-      .mockRejectedValueOnce(new Error("abort"))
-      .mockRejectedValueOnce(new Error("abort"));
-
-    const res = await POST(makeReq({ attack: "sqli" }));
-    expect(res.status).toBe(200);
-
-    const data = await res.json() as {
-      direct: { status: number };
-      waf: { status: number };
-    };
-    expect(data.direct.status).toBe(0);
-    expect(data.waf.status).toBe(0);
   });
 });
 
@@ -228,74 +206,55 @@ describe("error handling", () => {
 // ---------------------------------------------------------------------------
 
 describe("attack map correctness", () => {
-  const twoOkFetches = () => {
+  function mockOneFetch() {
     vi.mocked(globalThis.fetch)
       .mockResolvedValueOnce({
         status: 200,
         ok: true,
         text: vi.fn().mockResolvedValue("ok"),
         headers: { get: () => null },
-      } as unknown as Response)
-      .mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        text: vi.fn().mockResolvedValue("ok"),
-        headers: { get: () => null },
       } as unknown as Response);
-  };
+  }
 
-  it("uses correct path and params for xss attack", async () => {
-    twoOkFetches();
-
+  it("direct fetch uses lass-waf-demo.fly.dev for xss", async () => {
+    mockOneFetch();
     await POST(makeReq({ attack: "xss" }));
-
-    const calls = vi.mocked(globalThis.fetch).mock.calls;
-    const url0 = String(calls[0][0]);
-    const url1 = String(calls[1][0]);
-
-    expect(url0).toContain("/api/echo");
-    expect(url0).toContain("msg=");
-    expect(url1).toContain("/api/echo");
-    expect(url1).toContain("msg=");
+    const url = String(vi.mocked(globalThis.fetch).mock.calls[0][0]);
+    expect(url).toContain("lass-waf-demo.fly.dev");
+    expect(url).toContain("/api/echo");
   });
 
-  it("uses correct path for traversal attack", async () => {
-    twoOkFetches();
-
-    await POST(makeReq({ attack: "traversal" }));
-
-    const calls = vi.mocked(globalThis.fetch).mock.calls;
-    const url0 = String(calls[0][0]);
-    const url1 = String(calls[1][0]);
-
-    expect(url0).toContain("/api/file");
-    expect(url0).toContain("name=");
-    expect(url1).toContain("/api/file");
-    expect(url1).toContain("name=");
+  it("wafFetch URL uses waf-demo.andrewlass.com for xss", async () => {
+    mockOneFetch();
+    const res = await POST(makeReq({ attack: "xss" }));
+    const data = await res.json() as { wafFetch: { url: string } };
+    expect(data.wafFetch.url).toContain("waf-demo.andrewlass.com");
+    expect(data.wafFetch.url).toContain("/api/echo");
+    expect(data.wafFetch.url).toContain("msg=");
   });
 
-  it("uses correct path for sqli attack", async () => {
-    twoOkFetches();
-
+  it("sqli uses /api/users path", async () => {
+    mockOneFetch();
     await POST(makeReq({ attack: "sqli" }));
-
-    const calls = vi.mocked(globalThis.fetch).mock.calls;
-    const url0 = String(calls[0][0]);
-
-    expect(url0).toContain("/api/users");
-    expect(url0).toContain("id=");
+    const url = String(vi.mocked(globalThis.fetch).mock.calls[0][0]);
+    expect(url).toContain("/api/users");
+    expect(url).toContain("id=");
   });
 
-  it("uses correct path for benign attack", async () => {
-    twoOkFetches();
+  it("traversal uses /api/file path", async () => {
+    mockOneFetch();
+    await POST(makeReq({ attack: "traversal" }));
+    const url = String(vi.mocked(globalThis.fetch).mock.calls[0][0]);
+    expect(url).toContain("/api/file");
+    expect(url).toContain("name=");
+  });
 
+  it("benign uses /api/users path", async () => {
+    mockOneFetch();
     await POST(makeReq({ attack: "benign" }));
-
-    const calls = vi.mocked(globalThis.fetch).mock.calls;
-    const url0 = String(calls[0][0]);
-
-    expect(url0).toContain("/api/users");
-    expect(url0).toContain("id=");
+    const url = String(vi.mocked(globalThis.fetch).mock.calls[0][0]);
+    expect(url).toContain("/api/users");
+    expect(url).toContain("id=");
   });
 });
 
@@ -304,14 +263,8 @@ describe("attack map correctness", () => {
 // ---------------------------------------------------------------------------
 
 describe("result shape", () => {
-  it("benign attack result has correct structure", async () => {
+  it("benign result has correct structure with wafFetch spec", async () => {
     vi.mocked(globalThis.fetch)
-      .mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        text: vi.fn().mockResolvedValue("user data"),
-        headers: { get: () => null },
-      } as unknown as Response)
       .mockResolvedValueOnce({
         status: 200,
         ok: true,
@@ -326,7 +279,7 @@ describe("result shape", () => {
       attack: string;
       label: string;
       direct: { status: number; body: string };
-      waf: { status: number; body: string };
+      wafFetch: { url: string; demoKey: string };
       cached: boolean;
     };
 
@@ -334,7 +287,8 @@ describe("result shape", () => {
     expect(data.label).toBe("Benign request");
     expect(data.direct.status).toBe(200);
     expect(data.direct.body).toBe("user data");
-    expect(data.waf.status).toBe(200);
+    expect(data.wafFetch.url).toContain("waf-demo.andrewlass.com");
+    expect(data.wafFetch.demoKey).toBe("test-demo-key");
     expect(data.cached).toBe(false);
   });
 });
