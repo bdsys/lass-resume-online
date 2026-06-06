@@ -14,7 +14,7 @@
     "email": "andrew.lass2174@gmail.com",
     "phone": "805-423-2994",
     "github": "bdsys",
-    "linkedin": ""
+    "linkedin": "andrew-lass-80422b33"
   },
   "summary": "Senior Cloud Security and Infrastructure Engineer with 12+ years architecting, securing, and automating enterprise-scale multi-cloud environments on AWS (expert), Azure, and OCI. Proven track record designing DMZ perimeter architecture, multi-account governance frameworks, and everything-as-code CI/CD pipelines — at SAP Concur across 8+ global production environments and at Nintendo of America across 100+ AWS accounts and 20+ Azure subscriptions. Known for delivering at scale: Gateway Load Balancer-fronted DMZ re-architectures, OpenTofu firewall fleet migrations, FIPS-validated FedRAMP designs, and policy-as-code compliance automation for PCI DSS, SOC 2, and SOX. Always building. Always automating.",
   "skills": [
@@ -24,6 +24,7 @@
         "AWS IAM (expert)",
         "SCPs (Service Control Policies)",
         "AWS WAF configuration & tuning",
+        "Cloudflare WAF (rules-as-code)",
         "AWS Network Firewall",
         "Amazon GuardDuty",
         "AWS Security Hub",
@@ -83,8 +84,8 @@
         "VMware ESXi at scale (UCS hardware)",
         "Linux fleet (RHEL, CentOS, Oracle Linux, Ubuntu)",
         "Windows Server fleet admin & hardening",
-        "EKS / Kubernetes",
-        "Istio service mesh (mTLS)",
+        "Cloudflare Workers · KV",
+        "Fly.io",
         "IMDSv2 hardening"
       ]
     },

@@ -1,0 +1,38 @@
+name: WAF demo
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: waf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── WAF demo: typecheck + Vitest + Docker smoke ─────────────────────────
+  waf:
+    name: WAF demo (typecheck · unit tests · Docker smoke)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waf-demo-app/package-lock.json
+
+      - name: Install waf-demo-app dependencies
+        run: cd waf-demo-app && npm ci
+
+      - name: Typecheck
+        run: cd waf-demo-app && npm run typecheck
+
+      - name: Unit tests (Vitest)
+        run: cd waf-demo-app && npm test
+
+      - name: Docker smoke test
+        run: bash scripts/waf-smoke.sh

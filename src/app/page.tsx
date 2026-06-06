@@ -14,10 +14,8 @@ export default async function HomePage() {
       <section className="mx-auto max-w-5xl px-6 pt-16 pb-20">
         <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
 
-          {/* Left: terminal + identity */}
+          {/* Left: identity + terminal */}
           <div className="flex flex-col gap-8 flex-1">
-            <TerminalIntro />
-
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               {/* Avatar */}
               <div className="relative shrink-0">
@@ -76,6 +74,8 @@ export default async function HomePage() {
                 WAF Demo
               </Link>
             </div>
+
+            <TerminalIntro />
           </div>
 
           {/* Right: GitHub stats card */}
@@ -183,7 +183,7 @@ export default async function HomePage() {
             },
             {
               href:  "/security",
-              icon:  "⬡",
+              icon:  "⬢",
               title: "WAF Demo",
               desc:  "Live security dashboard. Watch a real Cloudflare WAF block XSS, SQLi, and path traversal.",
               color: "var(--color-green)",
