@@ -6,8 +6,8 @@
  * GITHUB_TOKEN        — Worker secret; enables GraphQL pinned repos + higher rate limits
  */
 
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import fallback from "../../data/github-fallback.json";
+import { getSecret, kvGet, kvSet } from "./cf-env";
 
 const GITHUB_LOGIN = "bdsys";
 const CACHE_TTL_SECONDS = 3600; // 1 hour
@@ -52,71 +52,8 @@ export interface GitHubUser {
   following: number;
 }
 
-// ---------------------------------------------------------------------------
-// Cloudflare bindings & secrets
-// ---------------------------------------------------------------------------
-//
-// In the Workers runtime, bindings (KV) and secrets are exposed on
-// getCloudflareContext().env — NOT on globalThis, and string secrets are not
-// reliably mirrored into process.env for app code. getCloudflareContext() is
-// the authoritative runtime source, so we read it directly (static import).
-//
-// `{ async: true }` is required for it to work in dynamic/SSR route handlers.
-// Outside Workers (next dev, `next build`, Vitest) the call throws and we fall
-// back to process.env (covers .env.local in dev) / globalThis (test shims).
-
-type KVNamespace = {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
-};
-
-async function cfEnv(): Promise<Record<string, unknown> | null> {
-  try {
-    const { env } = await getCloudflareContext({ async: true });
-    return env as unknown as Record<string, unknown>;
-  } catch {
-    return null; // dev / next build / Vitest — no Workers context
-  }
-}
-
-async function getKV(): Promise<KVNamespace | null> {
-  const fromCf = (await cfEnv())?.GITHUB_CACHE as KVNamespace | undefined;
-  if (fromCf) return fromCf;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((globalThis as any).GITHUB_CACHE as KVNamespace | undefined) ?? null;
-}
-
-async function getToken(): Promise<string | undefined> {
-  // process.env first (dev/.env.local, tests); getCloudflareContext is the
-  // reliable source in production where process.env may not carry the secret.
-  const fromProcess = process.env.GITHUB_TOKEN as string | undefined;
-  if (fromProcess) return fromProcess;
-  const fromCf = (await cfEnv())?.GITHUB_TOKEN as string | undefined;
-  if (fromCf) return fromCf;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (globalThis as any).GITHUB_TOKEN as string | undefined;
-}
-
-async function kvGet<T>(key: string): Promise<T | null> {
-  const kv = await getKV();
-  if (!kv) return null;
-  try {
-    const raw = await kv.get(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-async function kvSet<T>(key: string, value: T): Promise<void> {
-  const kv = await getKV();
-  if (!kv) return;
-  try {
-    await kv.put(key, JSON.stringify(value), { expirationTtl: CACHE_TTL_SECONDS });
-  } catch {
-    // Non-fatal — continue without caching
-  }
-}
+// Bindings, secrets, and KV helpers are now in src/lib/cf-env.ts.
+// getSecret("GITHUB_TOKEN"), kvGet(), kvSet() imported above.
 
 // ---------------------------------------------------------------------------
 // REST helpers
@@ -131,7 +68,7 @@ function buildHeaders(token?: string): HeadersInit {
     "User-Agent": "lass-resume-online (+https://andrewlass.com)",
   };
   // Optional: set GITHUB_TOKEN Worker secret to raise rate limits
-  // and unlock the GraphQL pinned repos query (see getToken()).
+  // and unlock the GraphQL pinned repos query.
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 }
@@ -154,14 +91,14 @@ export async function getGitHubUser(): Promise<GitHubUser> {
   // 2. GitHub REST API
   try {
     const res = await fetch(`${apiBase()}/users/${GITHUB_LOGIN}`, {
-      headers: buildHeaders(await getToken()),
+      headers: buildHeaders(await getSecret("GITHUB_TOKEN")),
       // Next.js cache: revalidate once per hour on the CDN / server side too
       next: { revalidate: CACHE_TTL_SECONDS },
     });
 
     if (res.ok) {
       const user = (await res.json()) as GitHubUser;
-      await kvSet(cacheKey, user);
+      await kvSet(cacheKey, user, CACHE_TTL_SECONDS);
       return user;
     }
   } catch {
@@ -186,7 +123,7 @@ export async function getRepositories(): Promise<GitHubRepo[]> {
     const res = await fetch(
       `${apiBase()}/users/${GITHUB_LOGIN}/repos?sort=pushed&per_page=100&type=public`,
       {
-        headers: buildHeaders(await getToken()),
+        headers: buildHeaders(await getSecret("GITHUB_TOKEN")),
         next: { revalidate: CACHE_TTL_SECONDS },
       },
     );
@@ -203,7 +140,7 @@ export async function getRepositories(): Promise<GitHubRepo[]> {
         pushed_at:        r.pushed_at,
         topics:           r.topics ?? [],
       }));
-      await kvSet(cacheKey, repos);
+      await kvSet(cacheKey, repos, CACHE_TTL_SECONDS);
       return repos;
     }
   } catch {
@@ -235,7 +172,7 @@ const PINNED_QUERY = `{
  * KV cache → GitHub GraphQL → [].
  */
 export async function getPinnedRepos(): Promise<GitHubPinnedRepo[]> {
-  const token = await getToken();
+  const token = await getSecret("GITHUB_TOKEN");
   if (!token) {
     // Surfaced in `wrangler tail` so a missing-secret regression isn't silent.
     console.warn("[github] no GITHUB_TOKEN at runtime — pinned repos disabled");
@@ -258,7 +195,7 @@ export async function getPinnedRepos(): Promise<GitHubPinnedRepo[]> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = (await res.json()) as any;
       const nodes: GitHubPinnedRepo[] = data?.data?.user?.pinnedItems?.nodes ?? [];
-      await kvSet(cacheKey, nodes);
+      await kvSet(cacheKey, nodes, CACHE_TTL_SECONDS);
       return nodes;
     }
   } catch {

@@ -1,4 +1,4 @@
-.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all clean up down \
+.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all test-llm clean up down \
         test-waf test-waf-typecheck test-waf-smoke test-infra
 
 DEV_PORT   ?= 3000
@@ -58,6 +58,17 @@ test-waf-smoke:
 
 test-smoke: build
 	@bash scripts/smoke.sh $(SMOKE_PORT)
+
+# ── LLM integration test ─────────────────────────────────────────────────────
+# Hits the live deployed /api/llm-compare endpoint. Requires keys set in wrangler.
+# Intentionally NOT part of test-all — costs real API money and requires deployment.
+# Usage: make test-llm                            (tests andrewlass.com)
+#        make test-llm LLM_BASE=https://staging.andrewlass.com
+
+LLM_BASE ?= https://andrewlass.com
+
+test-llm:
+	@bash scripts/llm-test.sh $(LLM_BASE)
 
 # ── E2E (Playwright) ─────────────────────────────────────────────────────────
 # Runs in GitHub Actions CI (ubuntu-22.04). Not supported on Ubuntu 26.04.

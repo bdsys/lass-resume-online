@@ -13,7 +13,7 @@
  * clients (browsers, curl, etc.) trigger WAF rules.
  */
 
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getSecret, kvGet, kvSet } from "@/lib/cf-env";
 
 // This route calls external services at request time — always dynamic
 export const dynamic = "force-dynamic";
@@ -71,70 +71,8 @@ const ATTACK_LABELS: Record<AttackType, string> = {
 
 const VALID_ATTACK_TYPES = new Set<string>(Object.keys(ATTACK_MAP));
 
-// ---------------------------------------------------------------------------
-// KV cache helpers
-// ---------------------------------------------------------------------------
-//
-// In the Workers runtime KV bindings and secrets live on
-// getCloudflareContext().env — not on globalThis, and string secrets are not
-// reliably mirrored into process.env for app code. We read the context directly
-// (static import); outside Workers (dev/build/tests) the call throws and we fall
-// back to process.env / globalThis.
-
-type KVNamespace = {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
-};
-
-async function cfEnv(): Promise<Record<string, unknown> | null> {
-  try {
-    const { env } = await getCloudflareContext({ async: true });
-    return env as unknown as Record<string, unknown>;
-  } catch {
-    return null; // dev / next build / Vitest — no Workers context
-  }
-}
-
-async function getKV(): Promise<KVNamespace | null> {
-  const fromCf = (await cfEnv())?.GITHUB_CACHE as KVNamespace | undefined;
-  if (fromCf) return fromCf;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((globalThis as any).GITHUB_CACHE as KVNamespace | undefined) ?? null;
-}
-
-async function kvGet<T>(key: string): Promise<T | null> {
-  const kv = await getKV();
-  if (!kv) return null;
-  try {
-    const raw = await kv.get(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-async function kvSet<T>(key: string, value: T): Promise<void> {
-  const kv = await getKV();
-  if (!kv) return;
-  try {
-    await kv.put(key, JSON.stringify(value), { expirationTtl: CACHE_TTL_SECONDS });
-  } catch {
-    // Non-fatal — continue without caching
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Secret lookup
-// ---------------------------------------------------------------------------
-
-async function getDemoKey(): Promise<string> {
-  const fromProcess = process.env.DEMO_KEY as string | undefined;
-  if (fromProcess) return fromProcess;
-  const fromCf = (await cfEnv())?.DEMO_KEY as string | undefined;
-  if (fromCf) return fromCf;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((globalThis as any).DEMO_KEY as string | undefined) ?? "";
-}
+// KV cache helpers and secret lookup are now in src/lib/cf-env.ts.
+// kvGet(), kvSet(), getSecret() imported above.
 
 // ---------------------------------------------------------------------------
 // Core fetch helper
@@ -208,7 +146,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 2. Guard: DEMO_KEY missing → 500
-  const demoKey = await getDemoKey();
+  const demoKey = (await getSecret("DEMO_KEY")) ?? "";
   if (!demoKey) {
     return Response.json({ error: "DEMO_KEY secret not configured" }, { status: 500 });
   }
@@ -232,7 +170,7 @@ export async function POST(request: Request): Promise<Response> {
   const wafUrl = buildWafUrl(attack);
 
   const payload: StoredPayload = { attack, label: ATTACK_LABELS[attack], direct, wafUrl };
-  void kvSet(cacheKey, payload);
+  void kvSet(cacheKey, payload, CACHE_TTL_SECONDS);
 
   return Response.json({
     ...payload,

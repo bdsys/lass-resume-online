@@ -93,6 +93,10 @@ check "/portfolio"  "lass-resume-online"
 # Stub routes — must return 200 (no 404/500)
 check "/resume"     "Resume"
 check "/security"   "WAF Demo"
+check "/tools"      "Tools"
+
+# IP API — plain-text response
+check "/api/ip"     "."
 
 echo "────────────────────────────────────────────────────"
 echo "${PASS} passed, ${FAIL} failed"
