@@ -4,6 +4,7 @@ const navLinks = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/resume",    label: "Resume"    },
   { href: "/security",  label: "Security"  },
+  { href: "/tools",     label: "Tools"     },
 ];
 
 export function Nav() {

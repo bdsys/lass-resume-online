@@ -183,7 +183,7 @@ export default async function HomePage() {
         >
           What&apos;s Here
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
               href:  "/portfolio",
@@ -205,6 +205,13 @@ export default async function HomePage() {
               title: "WAF Demo",
               desc:  "Live security dashboard. Watch a real Cloudflare WAF block XSS, SQLi, and path traversal.",
               color: "var(--color-green)",
+            },
+            {
+              href:  "/tools",
+              icon:  "⬟",
+              title: "Tools",
+              desc:  "Interactive demos — find your IP and compare Claude Haiku vs Gemini Flash.",
+              color: "var(--color-yellow)",
             },
           ].map(({ href, icon, title, desc, color }) => (
             <Link

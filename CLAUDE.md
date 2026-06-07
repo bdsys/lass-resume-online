@@ -84,6 +84,8 @@ Deploys are automated by `deploy.yml`: on push to `main` (or manual `workflow_di
 | Name | Where set | Purpose |
 |---|---|---|
 | `GITHUB_TOKEN` | `wrangler secret` / `.env.local` | GraphQL pinned repos + rate limits |
+| `ANTHROPIC_API_KEY` | `wrangler secret` / `.env.local` | Claude Haiku calls in `/api/llm-compare` |
+| `GOOGLE_API_KEY` | `wrangler secret` / `.env.local` | Gemini Flash calls in `/api/llm-compare` |
 | `GITHUB_API_BASE` | test env | Override REST base URL (E2E fixture server) |
 | `GITHUB_GRAPHQL_BASE` | test env | Override GraphQL endpoint (E2E fixture server) |
-| `GITHUB_CACHE` | `wrangler.toml` KV binding | KV namespace for API cache |
+| `GITHUB_CACHE` | `wrangler.toml` KV binding | KV namespace for API cache + rate-limit counters |

@@ -22,3 +22,7 @@ custom_domain = true
 [[routes]]
 pattern = "www.andrewlass.com"
 custom_domain = true
+
+[[routes]]
+pattern = "ip.andrewlass.com"
+custom_domain = true
