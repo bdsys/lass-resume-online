@@ -1,0 +1,23 @@
+# Andrew Lass — Senior Cloud Security & Infrastructure Engineer
+
+> Portfolio and cloud-security lab of Andrew Lass. 12+ years architecting,
+> securing, and automating enterprise multi-cloud environments (AWS expert,
+> Azure, OCI). Built on Cloudflare Workers; includes a live Cloudflare WAF
+> blocking real attacks against an isolated Fly.io backend.
+
+## Pages
+- [Home](https://andrewlass.com/): Bio, terminal intro, core skills
+- [Portfolio](https://andrewlass.com/portfolio): Live GitHub projects (REST + GraphQL, KV-cached)
+- [Resume](https://andrewlass.com/resume): Full resume + PDF download
+- [Security / WAF Demo](https://andrewlass.com/security): Live Cloudflare WAF blocking XSS, SQLi, path traversal
+
+## About
+- Focus: Cloud security, networking, governance, infrastructure, DevOps, automation
+- Location: Everett, WA
+- GitHub: https://github.com/bdsys
+- Contact: andrew.lass2174@gmail.com
+
+## Stack
+- Next.js 16 (App Router) on Cloudflare Workers via OpenNext
+- Cloudflare KV cache; Cloudflare WAF rules-as-code (OpenTofu)
+- Fly.io isolated demo backend

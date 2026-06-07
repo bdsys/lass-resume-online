@@ -23,7 +23,7 @@ contact:
   email: "andrew.lass2174@gmail.com"
   phone: "805-423-2994"
   github: "bdsys"
-  linkedin: ""   # optional — leave blank to omit from the site
+  linkedin: "andrew-lass-80422b33"   # handle only — rendered as linkedin.com/in/<handle>
 
 summary: >-
   Senior Cloud Security and Infrastructure Engineer with 12+ years architecting, securing, and
@@ -45,6 +45,7 @@ skills:
       - "AWS IAM (expert)"
       - "SCPs (Service Control Policies)"
       - "AWS WAF configuration & tuning"
+      - "Cloudflare WAF (rules-as-code)"
       - "AWS Network Firewall"
       - "Amazon GuardDuty"
       - "AWS Security Hub"
@@ -98,8 +99,8 @@ skills:
       - "VMware ESXi at scale (UCS hardware)"
       - "Linux fleet (RHEL, CentOS, Oracle Linux, Ubuntu)"
       - "Windows Server fleet admin & hardening"
-      - "EKS / Kubernetes"
-      - "Istio service mesh (mTLS)"
+      - "Cloudflare Workers · KV"
+      - "Fly.io"
       - "IMDSv2 hardening"
 
   - area: DevOps

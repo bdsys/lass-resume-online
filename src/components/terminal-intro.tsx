@@ -17,7 +17,7 @@ const SCRIPT: Line[] = [
   { prompt: true,  text: "uname -a" },
   { prompt: false, text: `${headline} — ${contact.location}` },
   { prompt: true,  text: "cat skills.txt" },
-  { prompt: false, text: "AWS  ·  Kubernetes  ·  WAF  ·  Terraform  ·  Python  ·  DevSecOps" },
+  { prompt: false, text: "AWS  ·  Azure  ·  WAF  ·  Terraform  ·  Python  ·  DevSecOps" },
   { prompt: true,  text: "ls interests/" },
   { prompt: false, text: "dmz-architecture/   threat-modeling/   ai-automation/   cloud-security/", color: "var(--color-green)" },
 ];

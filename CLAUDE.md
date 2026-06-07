@@ -71,7 +71,9 @@ Tailwind CSS v4 with custom CSS variables defined in `src/app/globals.css`. All 
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main` and `dev`. Two jobs in sequence: `quality` (lint → typecheck → Vitest) then `e2e` (Playwright on ubuntu-22.04). E2E is CI-only.
+GitHub Actions runs four independent test workflows on push/PR to `main` and `dev`, each with its own status badge: `quality.yml` (lint → typecheck → Vitest), `waf.yml` (waf-demo-app typecheck → unit tests → Docker smoke), `infra.yml` (OpenTofu fmt + validate), and `e2e.yml` (Playwright on ubuntu-22.04). They run in parallel — there is no cross-workflow gate. E2E is CI-only.
+
+Deploys are automated by `deploy.yml`: on push to `main` (or manual `workflow_dispatch`), it gates on lint/typecheck/unit tests, then runs `npm run build:worker` and `npm run deploy`. Wrangler authenticates via the `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` repo secrets. Note `opennextjs-cloudflare deploy` does not build — the workflow builds first. Runtime Worker secrets (`GITHUB_TOKEN`, `DEMO_KEY`) are set via `wrangler secret put` and persist across deploys, so they are not in CI.
 
 ### Path aliases
 

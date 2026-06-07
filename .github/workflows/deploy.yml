@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; let an in-flight deploy finish rather than cancel it
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # ─── Quality gate: deploy only if lint + typecheck + unit tests pass ──────
+  gate:
+    name: Quality gate (lint · typecheck · unit tests)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (Vitest)
+        run: npm run test
+
+  # ─── Build the OpenNext worker, then deploy it to Cloudflare ──────────────
+  # `opennextjs-cloudflare deploy` deploys an ALREADY-built app, so we build first.
+  # Wrangler authenticates from CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID.
+  deploy:
+    name: Deploy to Cloudflare Workers
+    runs-on: ubuntu-22.04
+    needs: gate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build worker (OpenNext)
+        run: npm run build:worker
+
+      - name: Deploy to Cloudflare
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

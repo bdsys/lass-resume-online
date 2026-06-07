@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Nav }    from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { getResume } from "@/lib/resume";
@@ -20,6 +21,7 @@ const titleFull  = `Andrew Lass — ${resume.headline}`;
 const ogDesc     = resume.pillars.join(" · ");
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://andrewlass.com"),
   title: {
     default:  titleFull,
     template: "%s | Andrew Lass",
@@ -29,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     type:     "website",
     locale:   "en_US",
-    url:      "https://andrewlass.dev", // TODO: update with real domain
+    url:      "https://andrewlass.com",
     siteName: "Andrew Lass",
     title:    titleFull,
     description: ogDesc,
@@ -50,6 +52,10 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+// Cloudflare Web Analytics (cookieless). Set NEXT_PUBLIC_CF_BEACON_TOKEN to the
+// site token from the Cloudflare dashboard → Web Analytics. No-op when unset.
+const cfBeaconToken = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -62,6 +68,13 @@ export default function RootLayout({
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />
+        {cfBeaconToken && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+          />
+        )}
       </body>
     </html>
   );

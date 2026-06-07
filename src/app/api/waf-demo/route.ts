@@ -70,21 +70,39 @@ const ATTACK_LABELS: Record<AttackType, string> = {
 const VALID_ATTACK_TYPES = new Set<string>(Object.keys(ATTACK_MAP));
 
 // ---------------------------------------------------------------------------
-// KV cache helpers (only available in Workers runtime)
+// KV cache helpers
 // ---------------------------------------------------------------------------
+//
+// In the Workers runtime KV bindings live on getCloudflareContext().env — not
+// on globalThis, and not mirrored into process.env (only string vars are). We
+// only reach for the context inside the real Workers runtime; dev/build/tests
+// fall back to globalThis so the existing tests keep working.
 
 type KVNamespace = {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
 };
 
-function getKV(): KVNamespace | null {
+function inWorkers(): boolean {
+  return typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+}
+
+async function getKV(): Promise<KVNamespace | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (globalThis as any).GITHUB_CACHE ?? null;
+  const fromGlobal = (globalThis as any).GITHUB_CACHE as KVNamespace | undefined;
+  if (fromGlobal) return fromGlobal;
+  if (!inWorkers()) return null;
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const { env } = await getCloudflareContext({ async: true });
+    return ((env as unknown as Record<string, unknown>)?.GITHUB_CACHE as KVNamespace | undefined) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function kvGet<T>(key: string): Promise<T | null> {
-  const kv = getKV();
+  const kv = await getKV();
   if (!kv) return null;
   try {
     const raw = await kv.get(key);
@@ -95,7 +113,7 @@ async function kvGet<T>(key: string): Promise<T | null> {
 }
 
 async function kvSet<T>(key: string, value: T): Promise<void> {
-  const kv = getKV();
+  const kv = await getKV();
   if (!kv) return;
   try {
     await kv.put(key, JSON.stringify(value), { expirationTtl: CACHE_TTL_SECONDS });
