@@ -36,7 +36,9 @@ test.describe("Homepage", () => {
 
   test("renders the location", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText(/Everett, WA/i)).toBeVisible();
+    // Scope to the 📍 hero line — /Everett, WA/i alone also matches the footer's
+    // "Made in Everett, Wash." ("Everett, Wa…"), which is a strict-mode violation.
+    await expect(page.getByText("📍 Everett, WA")).toBeVisible();
   });
 
   test("renders mock repo count (proves live GitHub data path)", async ({ page }) => {
