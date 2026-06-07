@@ -60,6 +60,16 @@ if (!Array.isArray(data.pillars) || data.pillars.length === 0) {
   console.log(`✓  ${data.pillars.length} pillars: ${data.pillars.join(', ')}`);
 }
 
+// ── Industries ────────────────────────────────────────────────────────────────
+
+if (data.industries !== undefined) {
+  if (!Array.isArray(data.industries) || data.industries.some(i => typeof i !== 'string')) {
+    errors.push('industries: must be an array of strings');
+  } else {
+    console.log(`✓  ${data.industries.length} industries: ${data.industries.join(', ')}`);
+  }
+}
+
 // ── Contact ───────────────────────────────────────────────────────────────────
 
 if (!data.contact || typeof data.contact !== 'object') {

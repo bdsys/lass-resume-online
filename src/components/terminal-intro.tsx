@@ -96,7 +96,7 @@ export function TerminalIntro() {
       {/* Terminal body */}
       <div
         ref={containerRef}
-        className="p-4 font-mono text-sm leading-relaxed overflow-y-auto max-h-52 space-y-0.5"
+        className="p-4 font-mono text-sm leading-relaxed overflow-y-auto h-72 space-y-0.5"
       >
         {lines.map(({ line, text, done }, i) => (
           <div key={i} className="flex items-start gap-2">
