@@ -1,7 +1,7 @@
 # About Andrew Lass
 
 Senior Cloud Security and Infrastructure Engineer with 12+ years architecting, securing, and
-automating enterprise-scale multi-cloud environments. Based in the Puget Sound area.
+automating enterprise-scale multi-cloud environments. Based in Everett, WA.
 
 My work spans the full breadth of cloud infrastructure: **DMZ perimeter design**, multi-account
 governance at scale, network security (FortiGate fleet, WAF, Network Firewall, IPS/IDS),

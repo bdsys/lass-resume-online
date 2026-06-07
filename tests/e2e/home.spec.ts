@@ -36,7 +36,16 @@ test.describe("Homepage", () => {
 
   test("renders the location", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText(/Puget Sound/i)).toBeVisible();
+    await expect(page.getByText(/Everett, WA/i)).toBeVisible();
+  });
+
+  test("renders mock repo count (proves live GitHub data path)", async ({ page }) => {
+    await page.goto("/");
+    // The mock fixture reports 12 public repos; the static fallback reports 13.
+    // Asserting 12 proves the build prerendered with the mock server (not the
+    // fallback) — i.e. the live data path is actually exercised end to end.
+    const reposStat = page.getByText("Repos", { exact: true }).locator("..");
+    await expect(reposStat).toContainText("12");
   });
 
   test("renders the terminal intro window", async ({ page }) => {

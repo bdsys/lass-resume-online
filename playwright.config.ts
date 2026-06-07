@@ -11,7 +11,7 @@
  *   - Ubuntu 26.04 (WSL2): push to dev and let CI run them, or set PLAYWRIGHT_EXECUTABLE_PATH
  *     to a Chromium/Chrome binary you install separately.
  *
- * CI command: see .github/workflows/ci.yml (e2e job installs chromium then runs this config).
+ * CI command: see .github/workflows/e2e.yml (installs chromium then runs this config).
  */
 import { defineConfig, devices } from "@playwright/test";
 
@@ -37,18 +37,30 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  // The mock server is started/stopped by globalSetup/globalTeardown.
-  // The Next.js app is pointed at the mock server via GITHUB_API_BASE.
-  globalSetup: "./tests/fixtures/setup.ts",
-  globalTeardown: "./tests/fixtures/teardown.ts",
-  webServer: {
-    // Build once then start the Node server; re-use between test runs locally
-    command: `GITHUB_API_BASE=http://localhost:${MOCK_PORT} npm run build && GITHUB_API_BASE=http://localhost:${MOCK_PORT} npm run start -- -p ${APP_PORT}`,
-    port: APP_PORT,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: {
-      GITHUB_API_BASE: `http://localhost:${MOCK_PORT}`,
+  // Two web servers, launched together by Playwright BEFORE globalSetup:
+  //   1. the GitHub API mock — must be up before the app builds, so `next build`
+  //      prerenders pages with the fixture data instead of the static fallback.
+  //   2. the app — waits for the mock, then builds + starts pointed at it.
+  // Running the mock here (not in globalSetup) is the whole fix: globalSetup runs
+  // AFTER the webServer build, which is why the build used to bake in the fallback.
+  webServer: [
+    {
+      command: `node tests/fixtures/mock-server.mjs`,
+      url: `http://localhost:${MOCK_PORT}/users/bdsys`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+      env: { PORT: String(MOCK_PORT) },
     },
-  },
+    {
+      // wait for the mock → build (build-time fetch hits the mock) → start
+      command: `node tests/fixtures/wait-for-mock.mjs && GITHUB_API_BASE=http://localhost:${MOCK_PORT} npm run build && GITHUB_API_BASE=http://localhost:${MOCK_PORT} npm run start -- -p ${APP_PORT}`,
+      url: `http://localhost:${APP_PORT}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        GITHUB_API_BASE: `http://localhost:${MOCK_PORT}`,
+        MOCK_URL: `http://localhost:${MOCK_PORT}/users/bdsys`,
+      },
+    },
+  ],
 });
