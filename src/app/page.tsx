@@ -75,6 +75,27 @@ export default async function HomePage() {
               </Link>
             </div>
 
+            {resume.industries && resume.industries.length > 0 && (
+              <div aria-labelledby="industries-heading">
+                <h2
+                  id="industries-heading"
+                  className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3"
+                >
+                  Industries Served
+                </h2>
+                <ul className="flex flex-wrap gap-2.5">
+                  {resume.industries.map((industry) => (
+                    <li
+                      key={industry}
+                      className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-1.5 font-mono text-xs text-[var(--color-text-muted)]"
+                    >
+                      {industry}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <TerminalIntro />
           </div>
 
@@ -120,9 +141,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ─── Divider ───────────────────────────────────────────────────── */}
-      <div className="border-t border-[var(--color-border)] mx-6" />
 
       {/* ─── Skills ────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-5xl px-6 py-16" aria-labelledby="skills-heading">

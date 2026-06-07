@@ -18,6 +18,15 @@ pillars:
   - DevOps
   - Automation
 
+industries:
+  - SaaS / Big Tech
+  - Entertainment & Gaming
+  - Public Utilities
+  - US Federal (FedRAMP)
+  - Warehouse & Distribution
+  - Manufacturing
+  - Sales & Call Centers
+
 contact:
   location: "Everett, WA"
   email: "andrew.lass2174@gmail.com"
@@ -143,7 +152,7 @@ experience:
     end: present
     bullets:
       - "Designed and led DMZ 2.0 — a multi-region Gateway Load Balancer-fronted FortiGate re-architecture replacing the legacy AWS perimeter across all commercial environments (Integration, US2, EU2, APJ1, Fabian US, Fabian EMEA); SARB-approved February 2023, final cutover August 2025."
-      - "Obtained five-board governance approval (SARB, SCORE, CACB, FIPS review, SDLC pen-test) for centralized FortiManager including a FIPS 140-validated design for the CTE-3 FedRAMP environment; onboarded all seven environments in under six months."
+      - "Obtained five-board governance approval (SARB, SCORE, CACB, FIPS review, SDLC pen-test) for centralized FortiManager including a FIPS 140-validated design for the CTE-3 FedRAMP environment; onboarded all seven environments in under six months; holds active HSPD-12 Public Trust (T2)."
       - "Led OpenTofu migration for the FortiGate fleet — bootstrapped the opentofu-deployer repository, authored 108 pull requests migrating from CloudFormation/Ansible to declarative IaC; first production cutover (FortiOS 7.4.11) completed May 2026."
       - "Primary owner of Ansible-based firewall-pipeline managing the entire FortiGate fleet; executed continuous FortiOS upgrades 6.4 through 7.6, certificate lifecycle automation, password rotation, and IMDSv2 compliance hardening."
       - "Closed 1,400+ vulnerability tickets (Tenable, AWS Inspector, Cloud Custodian, Orca, FIM, SIEM) across all environments — approximately 58% of all assigned work over five years."

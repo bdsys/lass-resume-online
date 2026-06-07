@@ -20,6 +20,8 @@
     "test:all": "npm run typecheck && npm run lint && npm run test && npm run test:e2e"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.102.0",
+    "@google/genai": "^2.8.0",
     "@opennextjs/cloudflare": "^1.19.11",
     "next": "16.2.7",
     "react": "19.2.4",
