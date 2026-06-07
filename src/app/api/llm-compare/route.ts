@@ -31,7 +31,11 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_PROMPT = "Help me plan a fun day in Everett today.";
 const MAX_PROMPT_CHARS = 500;
-const MAX_TOKENS = 1024;
+const CLAUDE_MAX_TOKENS = 1024;
+// Gemini 2.5 Flash has thinking enabled by default; thinking tokens count against
+// maxOutputTokens and cut off the visible response. Disable thinking (thinkingBudget: 0)
+// and give the output adequate room.
+const GEMINI_MAX_TOKENS = 2048;
 const FETCH_TIMEOUT_MS = 30_000;
 const DAILY_CAP = 500;
 
@@ -71,7 +75,7 @@ async function callClaude(prompt: string, apiKey: string): Promise<LlmResult> {
     const message = await client.messages.create(
       {
         model: CLAUDE_MODEL,
-        max_tokens: MAX_TOKENS,
+        max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: "user", content: prompt }],
       },
       { signal: controller.signal },
@@ -106,7 +110,10 @@ async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
     const response = await ai.models.generateContent({
       model: GEMINI_MODEL,
       contents: prompt,
-      config: { maxOutputTokens: MAX_TOKENS },
+      config: {
+          maxOutputTokens: GEMINI_MAX_TOKENS,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
     });
 
     const text = response.text ?? "";
