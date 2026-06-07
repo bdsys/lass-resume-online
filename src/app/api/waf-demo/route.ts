@@ -13,6 +13,8 @@
  * clients (browsers, curl, etc.) trigger WAF rules.
  */
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 // This route calls external services at request time — always dynamic
 export const dynamic = "force-dynamic";
 
@@ -73,32 +75,31 @@ const VALID_ATTACK_TYPES = new Set<string>(Object.keys(ATTACK_MAP));
 // KV cache helpers
 // ---------------------------------------------------------------------------
 //
-// In the Workers runtime KV bindings live on getCloudflareContext().env — not
-// on globalThis, and not mirrored into process.env (only string vars are). We
-// only reach for the context inside the real Workers runtime; dev/build/tests
-// fall back to globalThis so the existing tests keep working.
+// In the Workers runtime KV bindings and secrets live on
+// getCloudflareContext().env — not on globalThis, and string secrets are not
+// reliably mirrored into process.env for app code. We read the context directly
+// (static import); outside Workers (dev/build/tests) the call throws and we fall
+// back to process.env / globalThis.
 
 type KVNamespace = {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
 };
 
-function inWorkers(): boolean {
-  return typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+async function cfEnv(): Promise<Record<string, unknown> | null> {
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    return env as unknown as Record<string, unknown>;
+  } catch {
+    return null; // dev / next build / Vitest — no Workers context
+  }
 }
 
 async function getKV(): Promise<KVNamespace | null> {
+  const fromCf = (await cfEnv())?.GITHUB_CACHE as KVNamespace | undefined;
+  if (fromCf) return fromCf;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fromGlobal = (globalThis as any).GITHUB_CACHE as KVNamespace | undefined;
-  if (fromGlobal) return fromGlobal;
-  if (!inWorkers()) return null;
-  try {
-    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-    const { env } = await getCloudflareContext({ async: true });
-    return ((env as unknown as Record<string, unknown>)?.GITHUB_CACHE as KVNamespace | undefined) ?? null;
-  } catch {
-    return null;
-  }
+  return ((globalThis as any).GITHUB_CACHE as KVNamespace | undefined) ?? null;
 }
 
 async function kvGet<T>(key: string): Promise<T | null> {
@@ -126,9 +127,13 @@ async function kvSet<T>(key: string, value: T): Promise<void> {
 // Secret lookup
 // ---------------------------------------------------------------------------
 
-function getDemoKey(): string {
+async function getDemoKey(): Promise<string> {
+  const fromProcess = process.env.DEMO_KEY as string | undefined;
+  if (fromProcess) return fromProcess;
+  const fromCf = (await cfEnv())?.DEMO_KEY as string | undefined;
+  if (fromCf) return fromCf;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((globalThis as any).DEMO_KEY ?? process.env.DEMO_KEY ?? "") as string;
+  return ((globalThis as any).DEMO_KEY as string | undefined) ?? "";
 }
 
 // ---------------------------------------------------------------------------
@@ -203,7 +208,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 2. Guard: DEMO_KEY missing → 500
-  const demoKey = getDemoKey();
+  const demoKey = await getDemoKey();
   if (!demoKey) {
     return Response.json({ error: "DEMO_KEY secret not configured" }, { status: 500 });
   }
