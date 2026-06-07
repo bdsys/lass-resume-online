@@ -11,9 +11,6 @@ export default function SecurityPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <div className="mb-8">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
-          Phase 5
-        </p>
         <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text)]">
           WAF Demo
         </h1>

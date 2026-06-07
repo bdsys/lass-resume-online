@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   description: "GitHub projects — cloud automation, security tooling, and web applications.",
 };
 
+// Render per request on the Worker so GitHub data (incl. pinned repos via the
+// GITHUB_TOKEN secret) and the KV cache are available. A static build has no
+// token, so the "Featured" section would otherwise be baked empty.
+export const dynamic = "force-dynamic";
+
 // Matches docs/github-topic-schema.md
 const TOPIC_LABELS: Record<string, string> = {
   security:   "Security",
