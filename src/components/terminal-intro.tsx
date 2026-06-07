@@ -19,7 +19,7 @@ const SCRIPT: Line[] = [
   { prompt: true,  text: "cat skills.txt" },
   { prompt: false, text: "AWS  ·  Python  ·  IaC  ·  CI/CD  ·  Web Tech  ·  DevOps" },
   { prompt: true,  text: "ls interests/" },
-  { prompt: false, text: "cloud-networking/   cloud-governance/   cloud-security/   web-development/   systems-automation/", color: "var(--color-green)" },
+  { prompt: false, text: "cloud-networking/   cloud-governance/   cloud-security/   web-development/   systems-automation/   llm-integration/", color: "var(--color-green)" },
 ];
 
 const CHAR_DELAY   = 38;   // ms per character (input lines)
