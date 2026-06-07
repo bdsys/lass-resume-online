@@ -63,7 +63,7 @@ export default async function HomePage() {
               </Link>
               <Link
                 href="/resume"
-                className="inline-flex items-center gap-2 rounded border border-[var(--color-border)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-text-muted)] hover:border-[var(--color-accent-dim)] hover:text-[var(--color-text)] transition-colors"
+                className="inline-flex items-center gap-2 rounded border border-[var(--color-yellow-dim)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-yellow)] hover:bg-[var(--color-yellow-dim)] hover:text-[var(--color-bg)] transition-colors"
               >
                 Resume
               </Link>
