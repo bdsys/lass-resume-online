@@ -11,7 +11,6 @@ const RESUME: Resume = {
   contact: {
     location: "Everett, WA",
     email: "test@example.com",
-    phone: "555-000-0000",
     github: "bdsys",
     linkedin: "",
   },
@@ -50,11 +49,15 @@ describe("ResumeView", () => {
     expect(screen.getByText("Senior Cloud Security & Infrastructure Engineer")).toBeInTheDocument();
   });
 
-  it("renders contact location, phone, and github link", () => {
+  it("renders contact location and github link", () => {
     render(<ResumeView resume={RESUME} />);
     expect(screen.getByText("Everett, WA")).toBeInTheDocument();
-    expect(screen.getByText("555-000-0000")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /github\.com\/bdsys/i })).toBeInTheDocument();
+  });
+
+  it("does not render a phone number", () => {
+    render(<ResumeView resume={RESUME} />);
+    expect(screen.queryByText(/\d{3}[-.\s]\d{3}[-.\s]\d{4}/)).not.toBeInTheDocument();
   });
 
   it("omits linkedin when empty", () => {

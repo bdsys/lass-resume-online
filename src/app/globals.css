@@ -19,6 +19,8 @@
   --color-red-dim:    #7f1d1d; /* red-900   — danger backgrounds */
   --color-yellow:     #f59e0b; /* amber-500 — warning */
   --color-yellow-dim: #78350f; /* amber-900 — borders, hover */
+  --color-purple:     #a78bfa; /* violet-400 — tools */
+  --color-purple-dim: #5b21b6; /* violet-900 — tools hover */
 
   /* Text */
   --color-text:       #e2e8f0; /* slate-200 */
