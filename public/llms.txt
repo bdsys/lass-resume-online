@@ -6,10 +6,11 @@
 > blocking real attacks against an isolated Fly.io backend.
 
 ## Pages
-- [Home](https://andrewlass.com/): Bio, terminal intro, core skills
+- [Home](https://andrewlass.com/): Bio, terminal intro, core skills, compliance frameworks
 - [Portfolio](https://andrewlass.com/portfolio): Live GitHub projects (REST + GraphQL, KV-cached)
 - [Resume](https://andrewlass.com/resume): Full resume + PDF download
-- [Security / WAF Demo](https://andrewlass.com/security): Live Cloudflare WAF blocking XSS, SQLi, path traversal
+- [Security](https://andrewlass.com/security): Live Cloudflare WAF blocking XSS, SQLi, path traversal
+- [Tools](https://andrewlass.com/tools): IP lookup, Claude Haiku vs Gemini Flash comparison
 
 ## About
 - Focus: Cloud security, networking, governance, infrastructure, DevOps, automation
@@ -21,3 +22,6 @@
 - Next.js 16 (App Router) on Cloudflare Workers via OpenNext
 - Cloudflare KV cache; Cloudflare WAF rules-as-code (OpenTofu)
 - Fly.io isolated demo backend
+
+## Agent Setup
+- Plugin marketplace: https://andrewlass.com/tools/prompt.md
