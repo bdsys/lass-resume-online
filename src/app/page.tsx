@@ -71,7 +71,13 @@ export default async function HomePage() {
                 href="/security"
                 className="inline-flex items-center gap-2 rounded border border-[var(--color-green-dim)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-green)] hover:bg-[var(--color-green-dim)] hover:text-[var(--color-text)] transition-colors"
               >
-                WAF Demo
+                Security
+              </Link>
+              <Link
+                href="/tools"
+                className="inline-flex items-center gap-2 rounded border border-[var(--color-purple-dim)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-purple)] hover:bg-[var(--color-purple-dim)] hover:text-[var(--color-bg)] transition-colors"
+              >
+                Tools
               </Link>
             </div>
 
@@ -202,7 +208,7 @@ export default async function HomePage() {
             {
               href:  "/security",
               icon:  "⬢",
-              title: "WAF Demo",
+              title: "Security",
               desc:  "Live security dashboard. Watch a real Cloudflare WAF block XSS, SQLi, and path traversal.",
               color: "var(--color-green)",
             },
@@ -211,7 +217,7 @@ export default async function HomePage() {
               icon:  "⬟",
               title: "Tools",
               desc:  "Interactive demos — find your IP and compare Claude Haiku vs Gemini Flash.",
-              color: "var(--color-yellow)",
+              color: "var(--color-purple)",
             },
           ].map(({ href, icon, title, desc, color }) => (
             <Link
