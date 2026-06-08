@@ -33,10 +33,6 @@ frameworks:
   - "J-SOX"
   - "SOC 2"
   - "FedRAMP"
-  - "HIPAA"
-  - "ISO 27001"
-  - "NIST 800-53"
-  - "NIST CSF"
   - "CIS Controls"
   - "Custom Framework Design"
 
