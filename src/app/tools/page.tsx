@@ -43,9 +43,7 @@ export default function ToolsPage() {
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 space-y-3 max-w-lg">
           <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
             The <span className="font-mono text-[var(--color-accent)]">lass-labs</span> marketplace
-            adds two Claude Code plugins:{" "}
-            <code className="font-mono text-xs">whats-my-ip</code> and{" "}
-            <code className="font-mono text-xs">who-should-i-hire</code>.
+            adds Claude Code plugins for the tools on this site.
           </p>
           <p className="font-mono text-xs text-[var(--color-text-muted)]">
             Tell your agentic coding tool:
