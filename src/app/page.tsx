@@ -81,6 +81,8 @@ export default async function HomePage() {
               </Link>
             </div>
 
+            <TerminalIntro />
+
             {resume.industries && resume.industries.length > 0 && (
               <div aria-labelledby="industries-heading">
                 <h2
@@ -122,8 +124,6 @@ export default async function HomePage() {
                 </ul>
               </div>
             )}
-
-            <TerminalIntro />
           </div>
 
           {/* Right: GitHub stats card */}
