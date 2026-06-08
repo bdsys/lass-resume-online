@@ -14,10 +14,10 @@ import { GET, POST } from "./route";
 // Test helpers
 // ---------------------------------------------------------------------------
 
-function makeKV(cachedValue: unknown = null) {
+function makeKV(values: Record<string, string | null> = {}) {
   return {
-    get: vi.fn().mockResolvedValue(
-      cachedValue === null ? null : JSON.stringify(cachedValue)
+    get: vi.fn().mockImplementation((key: string) =>
+      Promise.resolve(values[key] ?? null)
     ),
     put: vi.fn().mockResolvedValue(undefined),
   };
@@ -102,7 +102,7 @@ describe("KV cache", () => {
       direct: { status: 200, body: "ok" },
       wafUrl: "https://waf-demo.andrewlass.com/api/echo?msg=%3Cscript%3E",
     };
-    (globalThis as Record<string, unknown>).GITHUB_CACHE = makeKV(storedPayload);
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = makeKV({ "waf-demo:xss": JSON.stringify(storedPayload) });
 
     vi.mocked(globalThis.fetch).mockImplementation(() => {
       throw new Error("fetch should not be called on cache hit");
@@ -121,7 +121,7 @@ describe("KV cache", () => {
   });
 
   it("fires one direct fetch on cache miss and writes KV", async () => {
-    const kv = makeKV(null);
+    const kv = makeKV();
     (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
 
     vi.mocked(globalThis.fetch)
@@ -144,6 +144,55 @@ describe("KV cache", () => {
     await Promise.resolve();
     // Two puts: cache write + counter increment (xss is a non-benign attack)
     expect(kv.put).toHaveBeenCalledTimes(2);
+  });
+
+  it("increments counter on non-benign attack (cache hit) and returns cached:true", async () => {
+    const storedPayload = {
+      attack: "xss",
+      label: "Reflected XSS",
+      direct: { status: 200, body: "ok" },
+      wafUrl: "https://waf-demo.andrewlass.com/api/echo?msg=%3Cscript%3E",
+    };
+    const kv = makeKV({ "waf-demo:xss": JSON.stringify(storedPayload) });
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
+
+    vi.mocked(globalThis.fetch).mockImplementation(() => {
+      throw new Error("fetch should not be called on cache hit");
+    });
+
+    const res = await POST(makeReq({ attack: "xss" }));
+    const data = await res.json() as { cached: boolean };
+
+    // Counter was incremented before the cache short-circuit
+    expect(kv.put).toHaveBeenCalledTimes(1);
+    expect(kv.put).toHaveBeenCalledWith("waf:attacks:total", expect.any(String));
+
+    // Response still reflects the cache hit
+    expect(data.cached).toBe(true);
+  });
+
+  it("does not increment counter on benign attack", async () => {
+    const kv = makeKV();
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
+
+    vi.mocked(globalThis.fetch)
+      .mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        text: vi.fn().mockResolvedValue("benign ok"),
+        headers: { get: () => null },
+      } as unknown as Response);
+
+    const res = await POST(makeReq({ attack: "benign" }));
+    expect(res.status).toBe(200);
+
+    // Flush all pending microtasks from the fire-and-forget kvSet chain
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // The cache write goes through but the counter must never be incremented for benign
+    expect(kv.put).not.toHaveBeenCalledWith("waf:attacks:total", expect.any(String));
   });
 });
 
@@ -299,7 +348,7 @@ describe("result shape", () => {
 
 describe("GET /api/waf-demo stats", () => {
   it("returns totalAttacks: 0 when KV has no counter", async () => {
-    const kv = makeKV(null);
+    const kv = makeKV();
     (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
     const res = await GET();
     expect(res.status).toBe(200);
@@ -308,10 +357,7 @@ describe("GET /api/waf-demo stats", () => {
   });
 
   it("returns the stored counter value from KV", async () => {
-    const kv = {
-      get: vi.fn().mockResolvedValue("42"),
-      put: vi.fn().mockResolvedValue(undefined),
-    };
+    const kv = makeKV({ "waf:attacks:total": "42" });
     (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
     const res = await GET();
     const data = (await res.json()) as { totalAttacks: number };
