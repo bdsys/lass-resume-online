@@ -39,31 +39,11 @@ resource "cloudflare_dns_record" "waf_demo" {
   comment = "WAF demo backend — proxied through CF WAF"
 }
 
-# Origin Rule: override SNI to lass-waf-demo.fly.dev so the TLS handshake
-# succeeds (Fly's cert is *.fly.dev, not waf-demo.andrewlass.com).
-resource "cloudflare_ruleset" "origin_sni_override" {
-  zone_id = var.zone_id
-  name    = "WAF Demo Origin Rules"
-  kind    = "zone"
-  phase   = "http_request_origin"
-
-  rules = [
-    {
-      description = "Use Fly hostname as SNI for waf-demo origin"
-      enabled     = true
-      action      = "route"
-      action_parameters = {
-        origin = {
-          host = var.fly_hostname
-          port = 443
-        }
-        sni = {
-          value = var.fly_hostname
-        }
-      }
-      expression = "http.host eq \"waf-demo.andrewlass.com\""
-    }
-  ]
+# Zone settings — apply to all of andrewlass.com
+resource "cloudflare_zone_setting" "always_use_https" {
+  zone_id    = var.zone_id
+  setting_id = "always_use_https"
+  value      = "on"
 }
 
 # Worker custom domains (andrewlass.com + www) are managed by wrangler.toml,
