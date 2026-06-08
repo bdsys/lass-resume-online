@@ -20,7 +20,7 @@ import resumeJson from "../data/resume.json";
 const ContactSchema = z.object({
   location: z.string(),
   email: z.string(),
-  phone: z.string(),
+  phone: z.string().optional(),
   github: z.string(),
   linkedin: z.string().optional(),
 });
