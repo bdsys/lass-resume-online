@@ -28,10 +28,10 @@ test.describe("Homepage", () => {
 
   test("renders the hero summary text", async ({ page }) => {
     await page.goto("/");
-    // Homepage now shows the first sentence of the curated resume summary
-    // (the GitHub bio is no longer rendered on the homepage)
+    // Homepage now shows the first sentence of the curated resume summary.
+    // Scope to <p> to avoid matching "Splunk (12+ years)" / "Nagios (12+ years)" <li>s.
     await expect(
-      page.getByText(/12\+ years/i)
+      page.locator("p").filter({ hasText: /12\+ years/i })
     ).toBeVisible();
   });
 
