@@ -47,7 +47,7 @@ binding = "ASSETS"
 
 [[env.preview.kv_namespaces]]
 binding = "GITHUB_CACHE"
-id = "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
+id = "a22ea36ab2c84b60a17ccc3da5ca70aa"
 
 [[env.preview.routes]]
 pattern = "preview.www.andrewlass.com"
