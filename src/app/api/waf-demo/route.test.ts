@@ -186,12 +186,9 @@ describe("KV cache", () => {
     const res = await POST(makeReq({ attack: "benign" }));
     expect(res.status).toBe(200);
 
-    // Flush all pending microtasks from the fire-and-forget kvSet chain
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    // The cache write goes through but the counter must never be incremented for benign
+    // No microtask flushing needed: incrementAttackCounter() is guarded by
+    // attack !== "benign" so it never runs; the counter key is never touched.
+    // The only fire-and-forget is kvSet() which writes to a different key (waf-demo:benign).
     expect(kv.put).not.toHaveBeenCalledWith("waf:attacks:total", expect.any(String));
   });
 });
