@@ -1,5 +1,8 @@
+import { getVersion } from "@/lib/version";
+
 export function Footer() {
   const year = new Date().getFullYear();
+  const version = getVersion();
 
   return (
     <footer className="border-t border-[var(--color-border)] mt-auto">
@@ -36,6 +39,12 @@ export function Footer() {
           </a>
         </div>
       </div>
+      <p
+        className="font-mono text-xs text-[var(--color-text-dim)] pb-3 text-center"
+        title={`${version.describe} · ${version.date}`}
+      >
+        v{version.number} &middot; &ldquo;{version.name}&rdquo;
+      </p>
     </footer>
   );
 }
