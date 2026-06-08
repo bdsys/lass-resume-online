@@ -1,4 +1,4 @@
-.PHONY: build content-check lint typecheck test test-smoke test-e2e test-all test-llm clean up down \
+.PHONY: build content-check version-check lint typecheck test test-smoke test-e2e test-all test-llm clean up down \
         test-waf test-waf-typecheck test-waf-smoke test-infra
 
 DEV_PORT   ?= 3000
@@ -20,6 +20,9 @@ down:
 
 content-check:
 	node scripts/content-check.mjs
+
+version-check:
+	node scripts/gen-version.mjs
 
 # ── Individual steps ────────────────────────────────────────────────────────
 
