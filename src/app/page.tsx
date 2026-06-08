@@ -65,7 +65,7 @@ export default async function HomePage() {
                   href={`https://linkedin.com/in/${resume.contact.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded border border-[var(--color-border)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-text-muted)] hover:border-[var(--color-accent-dim)] hover:text-[var(--color-accent)] transition-colors"
+                  className="inline-flex items-center gap-2 rounded border border-[var(--color-linkedin)] bg-[var(--color-linkedin-dim)] px-5 py-2.5 font-mono text-sm text-[var(--color-text)] hover:bg-[var(--color-linkedin)] hover:text-[var(--color-bg)] transition-colors font-semibold"
                 >
                   LinkedIn
                 </a>
