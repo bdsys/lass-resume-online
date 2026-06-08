@@ -66,5 +66,12 @@ resource "cloudflare_ruleset" "origin_sni_override" {
   ]
 }
 
+# Zone settings — apply to all of andrewlass.com
+resource "cloudflare_zone_setting" "always_use_https" {
+  zone_id    = var.zone_id
+  setting_id = "always_use_https"
+  value      = "on"
+}
+
 # Worker custom domains (andrewlass.com + www) are managed by wrangler.toml,
 # not tofu — they are attached automatically on `npm run deploy`.
