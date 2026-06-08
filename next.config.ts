@@ -24,8 +24,8 @@ const SECURITY_HEADERS = [
       "font-src 'self' https://fonts.gstatic.com",
       // Images: self + data URIs + GitHub avatars
       "img-src 'self' data: https://avatars.githubusercontent.com",
-      // Connections: self only (fetch/XHR go to /api/* on the same origin)
-      "connect-src 'self' https://static.cloudflareinsights.com",
+      // Connections: self + WAF demo (browser-side fetch in WafDemo.tsx) + CF analytics
+      "connect-src 'self' https://waf-demo.andrewlass.com https://static.cloudflareinsights.com",
       // No iframes, objects, or media
       "frame-ancestors 'none'",
       "object-src 'none'",

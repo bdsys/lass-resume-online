@@ -26,11 +26,12 @@ test.describe("Homepage", () => {
     expect(src).toBeTruthy();
   });
 
-  test("renders the GitHub bio text", async ({ page }) => {
+  test("renders the hero summary text", async ({ page }) => {
     await page.goto("/");
-    // Bio comes from the fixture mock server
+    // Homepage now shows the first sentence of the curated resume summary
+    // (the GitHub bio is no longer rendered on the homepage)
     await expect(
-      page.getByText(/systems and network engineer/i)
+      page.getByText(/12\+ years/i)
     ).toBeVisible();
   });
 
