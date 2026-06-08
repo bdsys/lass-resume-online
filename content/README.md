@@ -50,7 +50,7 @@ If the dev server is already running when you run `make content-check`, Next.js 
 |-------|----------|-------------|
 | `location` | yes | City, State. |
 | `email` | yes | Contact email. |
-| `phone` | yes | Phone number. |
+| `phone` | no | Phone number. Omit to hide from the site. |
 | `github` | yes | GitHub username (no `@` or URL — just the handle). |
 | `linkedin` | no | LinkedIn URL or handle. Leave blank (`""`) to omit from the site. |
 

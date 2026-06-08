@@ -2,9 +2,9 @@ name: Quality
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, preview]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, preview]
 
 # Cancel in-flight runs for the same branch when a new push arrives
 concurrency:

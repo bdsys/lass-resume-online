@@ -27,10 +27,18 @@ industries:
   - Manufacturing
   - Sales & Call Centers
 
+frameworks:
+  - "PCI DSS"
+  - "SOX"
+  - "J-SOX"
+  - "SOC 2"
+  - "FedRAMP"
+  - "CIS Controls"
+  - "Custom Framework Design"
+
 contact:
   location: "Everett, WA"
   email: "andrew.lass2174@gmail.com"
-  phone: "805-423-2994"
   github: "bdsys"
   linkedin: "andrew-lass-80422b33"   # handle only — rendered as linkedin.com/in/<handle>
 
