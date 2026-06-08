@@ -2,9 +2,9 @@ name: Infra
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, preview]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, preview]
 
 concurrency:
   group: infra-${{ github.ref }}
