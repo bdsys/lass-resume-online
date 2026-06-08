@@ -111,9 +111,10 @@ async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
       model: GEMINI_MODEL,
       contents: prompt,
       config: {
-          maxOutputTokens: GEMINI_MAX_TOKENS,
-          thinkingConfig: { thinkingBudget: 0 },
-        },
+        maxOutputTokens: GEMINI_MAX_TOKENS,
+        thinkingConfig:  { thinkingBudget: 0 },
+        abortSignal:     controller.signal,
+      },
     });
 
     const text = response.text ?? "";
@@ -125,6 +126,31 @@ async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Error formatting
+// ---------------------------------------------------------------------------
+
+/**
+ * Converts raw provider errors into user-friendly messages.
+ * Distinguishes timeout/abort from authentication failures so the UI
+ * can give actionable feedback.
+ */
+function friendlyError(err: unknown, provider: string): string {
+  const name    = err instanceof Error ? err.name : "";
+  const message = err instanceof Error ? err.message : String(err);
+  if (name === "AbortError" || message.toLowerCase().includes("abort")) {
+    return `${provider} timed out — try a shorter prompt.`;
+  }
+  if (
+    message.includes("401") ||
+    message.toLowerCase().includes("unauthorized") ||
+    message.toLowerCase().includes("authentication")
+  ) {
+    return `${provider} authentication error — API key may be invalid or expired.`;
+  }
+  return message || `${provider} request failed.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -207,12 +233,12 @@ export async function POST(request: Request): Promise<Response> {
   const claude: LlmCompareResponse["claude"] =
     claudeOutcome.status === "fulfilled"
       ? claudeOutcome.value
-      : { error: String(claudeOutcome.reason) };
+      : { error: friendlyError(claudeOutcome.reason, "Claude") };
 
   const gemini: LlmCompareResponse["gemini"] =
     geminiOutcome.status === "fulfilled"
       ? geminiOutcome.value
-      : { error: String(geminiOutcome.reason) };
+      : { error: friendlyError(geminiOutcome.reason, "Gemini") };
 
   const body: LlmCompareResponse = { prompt, claude, gemini };
   return Response.json(body);

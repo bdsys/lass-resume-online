@@ -194,6 +194,11 @@ export async function getPinnedRepos(): Promise<GitHubPinnedRepo[]> {
     if (res.ok) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = (await res.json()) as any;
+      // A GraphQL 200 response may still carry errors (auth, schema issues, etc.)
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        console.error("[github] GraphQL errors (not caching):", data.errors);
+        return [];
+      }
       const nodes: GitHubPinnedRepo[] = data?.data?.user?.pinnedItems?.nodes ?? [];
       await kvSet(cacheKey, nodes, CACHE_TTL_SECONDS);
       return nodes;

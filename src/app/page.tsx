@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { TerminalIntro } from "@/components/terminal-intro";
+import { WafCounter }   from "@/components/waf-counter";
 import { getGitHubUser } from "@/lib/github";
 import { getResume } from "@/lib/resume";
 
@@ -40,20 +41,38 @@ export default async function HomePage() {
                 </p>
                 {user.location && (
                   <p className="mt-0.5 font-mono text-[var(--color-text-muted)] text-xs">
-                    📍 {user.location}
+                    <span aria-hidden="true">📍</span> {user.location}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* GitHub bio */}
-            {user.bio && (
-              <p className="text-[var(--color-text-muted)] leading-relaxed max-w-xl">
-                {user.bio}
-              </p>
-            )}
+            {/* Value proposition — first sentence of curated resume summary */}
+            <p className="text-[var(--color-text-muted)] leading-relaxed max-w-xl">
+              {resume.summary.split(".")[0]}.
+            </p>
 
-            {/* CTA buttons */}
+            {/* Primary CTA: contact */}
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={`mailto:${resume.contact.email}`}
+                className="inline-flex items-center gap-2 rounded border border-[var(--color-accent)] bg-[var(--color-accent-dim)] px-5 py-2.5 font-mono text-sm text-[var(--color-text)] hover:bg-[var(--color-accent)] hover:text-[var(--color-bg)] transition-colors font-semibold"
+              >
+                Get in Touch
+              </a>
+              {resume.contact.linkedin && (
+                <a
+                  href={`https://linkedin.com/in/${resume.contact.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded border border-[var(--color-border)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-text-muted)] hover:border-[var(--color-accent-dim)] hover:text-[var(--color-accent)] transition-colors"
+                >
+                  LinkedIn
+                </a>
+              )}
+            </div>
+
+            {/* Secondary nav buttons */}
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/portfolio"
@@ -71,7 +90,7 @@ export default async function HomePage() {
                 href="/security"
                 className="inline-flex items-center gap-2 rounded border border-[var(--color-green-dim)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-green)] hover:bg-[var(--color-green-dim)] hover:text-[var(--color-text)] transition-colors"
               >
-                Security
+                Security Demo
               </Link>
               <Link
                 href="/tools"
@@ -82,6 +101,27 @@ export default async function HomePage() {
             </div>
 
             <TerminalIntro />
+
+            {resume.clouds && resume.clouds.length > 0 && (
+              <div aria-labelledby="clouds-heading">
+                <h2
+                  id="clouds-heading"
+                  className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3"
+                >
+                  Public Clouds
+                </h2>
+                <ul className="flex flex-wrap gap-2.5">
+                  {resume.clouds.map((cloud) => (
+                    <li
+                      key={cloud}
+                      className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-1.5 font-mono text-xs text-[var(--color-text-muted)]"
+                    >
+                      {cloud}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {resume.industries && resume.industries.length > 0 && (
               <div aria-labelledby="industries-heading">
@@ -202,6 +242,42 @@ export default async function HomePage() {
       {/* ─── Divider ───────────────────────────────────────────────────── */}
       <div className="border-t border-[var(--color-border)] mx-6" />
 
+      {/* ─── WAF Demo tease ───────────────────────────────────────────── */}
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <div className="rounded-lg border border-[var(--color-green-dim)] bg-[var(--color-bg-card)] p-8 flex flex-col md:flex-row md:items-center gap-6">
+          <div className="flex-1 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs uppercase tracking-widest text-[var(--color-green)]">
+                Live Demo
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-green)] animate-pulse" aria-hidden="true" />
+            </div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">
+              Cloudflare WAF in Action
+            </h2>
+            <p className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-lg">
+              An isolated, intentionally-vulnerable app sits behind a real Cloudflare WAF.
+              Fire XSS, SQL injection, or path-traversal payloads — see the raw exploit
+              hit the unprotected endpoint while the WAF blocks the same request at the
+              edge. No staged screenshots.
+            </p>
+            <p className="font-mono text-xs text-[var(--color-text-muted)]">
+              Attacks run:{" "}
+              <WafCounter />
+            </p>
+          </div>
+          <Link
+            href="/security"
+            className="shrink-0 inline-flex items-center gap-2 rounded border border-[var(--color-green)] bg-[var(--color-bg-surface)] px-6 py-3 font-mono text-sm text-[var(--color-green)] hover:bg-[var(--color-green-dim)] hover:text-[var(--color-text)] transition-colors font-semibold"
+          >
+            Launch Demo →
+          </Link>
+        </div>
+      </section>
+
+      {/* ─── Divider ───────────────────────────────────────────────────── */}
+      <div className="border-t border-[var(--color-border)] mx-6" />
+
       {/* ─── Sections preview ─────────────────────────────────────────── */}
       <section className="mx-auto max-w-5xl px-6 py-16" aria-labelledby="sections-heading">
         <h2
@@ -223,7 +299,7 @@ export default async function HomePage() {
               href:  "/resume",
               icon:  "◈",
               title: "Resume",
-              desc:  "Typeset, print-friendly resume with PDF download. Single source of truth.",
+              desc:  "Typeset, print-friendly resume. Download as PDF or print. Single source of truth.",
               color: "var(--color-text-muted)",
             },
             {

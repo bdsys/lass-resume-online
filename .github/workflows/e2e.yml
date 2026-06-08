@@ -10,6 +10,9 @@ concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   # ─── E2E: Playwright on ubuntu-22.04 (supported by Playwright binaries) ──
   # NOTE: this runs independently of the quality/waf/infra workflows so it gets
@@ -19,10 +22,10 @@ jobs:
     name: E2E (Playwright)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set up Node 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
           cache: npm
@@ -40,7 +43,7 @@ jobs:
 
       # Upload the Playwright HTML report so failures are inspectable in GitHub UI
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: playwright-report

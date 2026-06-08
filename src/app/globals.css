@@ -114,7 +114,8 @@ body {
 }
 .card-hover:hover {
   border-color: var(--color-accent-dim);
-  box-shadow: 0 0 20px var(--color-accent-dim)40;
+  /* #0e7490 at ~25% opacity — color-mix avoids the invalid bare-suffix pattern */
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent-dim) 25%, transparent);
 }
 
 /* ── Print / Save-as-PDF ──────────────────────────────────────────────────── */

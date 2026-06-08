@@ -124,6 +124,7 @@ if (!Array.isArray(data.experience) || data.experience.length === 0) {
   errors.push('experience: required non-empty array');
 } else {
   const REQUIRED = ['company', 'title', 'location', 'start', 'end', 'bullets'];
+  const DATE_RE = /^\d{4}-\d{2}$/;
   data.experience.forEach((exp, i) => {
     for (const field of REQUIRED) {
       if (field === 'bullets') {
@@ -133,6 +134,13 @@ if (!Array.isArray(data.experience) || data.experience.length === 0) {
       } else if (typeof exp[field] !== 'string' || !String(exp[field]).trim()) {
         errors.push(`experience[${i}] (${exp.company ?? '?'}): ${field} required string`);
       }
+    }
+    // Validate date formats
+    if (exp.start && !DATE_RE.test(exp.start)) {
+      errors.push(`experience[${i}] (${exp.company ?? '?'}): start must be YYYY-MM, got "${exp.start}"`);
+    }
+    if (exp.end && exp.end !== 'present' && !DATE_RE.test(exp.end)) {
+      errors.push(`experience[${i}] (${exp.company ?? '?'}): end must be YYYY-MM or "present", got "${exp.end}"`);
     }
   });
   console.log(`✓  ${data.experience.length} experience entries: ${data.experience.map(e => e.company).join(', ')}`);

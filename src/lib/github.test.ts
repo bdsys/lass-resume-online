@@ -218,6 +218,28 @@ describe("getPinnedRepos", () => {
     expect(pinned[0].name).toBe("pinned-repo");
     expect(pinned[0].stargazerCount).toBe(5);
   });
+
+  it("returns [] and does not cache when GraphQL responds with errors", async () => {
+    (globalThis as Record<string, unknown>).GITHUB_TOKEN = "ghp_test";
+    const kv = {
+      get: vi.fn().mockResolvedValue(null),
+      put: vi.fn().mockResolvedValue(undefined),
+    };
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
+
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        errors: [{ message: "Field 'pinnedItems' doesn't exist on type 'User'" }],
+        data: null,
+      }),
+    } as unknown as Response);
+
+    const pinned = await getPinnedRepos();
+    expect(pinned).toEqual([]);
+    // Must NOT cache an error response
+    expect(kv.put).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------

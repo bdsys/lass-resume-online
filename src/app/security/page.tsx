@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { WafDemo } from "./WafDemo";
+import { WafDemo }    from "./WafDemo";
+import { WafCounter } from "@/components/waf-counter";
 
 export const metadata: Metadata = {
   title: "Security Demo",
@@ -18,6 +19,10 @@ export default function SecurityPage() {
           A real Cloudflare WAF sits in front of an isolated, intentionally-vulnerable app.
           Click an attack below to fire a live request through both paths — the raw exploit
           and the WAF-protected route — and see what happens.
+        </p>
+        <p className="mt-2 font-mono text-xs text-[var(--color-text-muted)]">
+          Attacks run:{" "}
+          <WafCounter />
         </p>
       </div>
       <WafDemo />
