@@ -2,9 +2,9 @@ name: WAF demo
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, preview]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, preview]
 
 concurrency:
   group: waf-${{ github.ref }}

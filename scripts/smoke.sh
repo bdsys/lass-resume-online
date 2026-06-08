@@ -98,6 +98,9 @@ check "/tools"      "Tools"
 # IP API — plain-text response
 check "/api/ip"     "."
 
+# Agent setup — Markdown route
+check "/tools/prompt.md"  "plugin marketplace add bdsys/lass-labs"
+
 echo "────────────────────────────────────────────────────"
 echo "${PASS} passed, ${FAIL} failed"
 

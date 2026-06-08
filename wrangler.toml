@@ -26,3 +26,29 @@ custom_domain = true
 [[routes]]
 pattern = "ip.andrewlass.com"
 custom_domain = true
+
+# ── Preview / staging environment ─────────────────────────────────────────────
+# Deploy with: npm run deploy:preview
+# Custom domain attaches on first deploy (same andrewlass.com zone).
+#
+# BEFORE FIRST DEPLOY — run these once:
+#   npx wrangler kv namespace create GITHUB_CACHE_PREVIEW
+#   → paste the returned id into the kv_namespaces id below
+#   npx wrangler secret put GITHUB_TOKEN --env preview
+#   npx wrangler secret put ANTHROPIC_API_KEY --env preview
+#   npx wrangler secret put GOOGLE_API_KEY --env preview
+
+[env.preview]
+name = "lass-resume-online-preview"
+
+[env.preview.assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[env.preview.kv_namespaces]]
+binding = "GITHUB_CACHE"
+id = "a22ea36ab2c84b60a17ccc3da5ca70aa"
+
+[[env.preview.routes]]
+pattern = "preview.www.andrewlass.com"
+custom_domain = true

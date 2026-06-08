@@ -12,7 +12,7 @@ export default function SecurityPage() {
     <div className="mx-auto max-w-6xl px-6 py-16">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text)]">
-          WAF Demo
+          Security / WAF Demo
         </h1>
         <p className="mt-3 text-[var(--color-text-muted)] max-w-2xl">
           A real Cloudflare WAF sits in front of an isolated, intentionally-vulnerable app.

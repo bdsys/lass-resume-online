@@ -70,12 +70,22 @@ if (data.industries !== undefined) {
   }
 }
 
+// ── Frameworks ────────────────────────────────────────────────────────────────
+
+if (data.frameworks !== undefined) {
+  if (!Array.isArray(data.frameworks) || data.frameworks.some(f => typeof f !== 'string')) {
+    errors.push('frameworks: must be an array of strings');
+  } else {
+    console.log(`✓  ${data.frameworks.length} frameworks: ${data.frameworks.join(', ')}`);
+  }
+}
+
 // ── Contact ───────────────────────────────────────────────────────────────────
 
 if (!data.contact || typeof data.contact !== 'object') {
   errors.push('contact: required object');
 } else {
-  for (const field of ['location', 'email', 'phone', 'github']) {
+  for (const field of ['location', 'email', 'github']) {
     if (typeof data.contact[field] !== 'string' || !data.contact[field].trim()) {
       errors.push(`contact.${field}: required non-empty string`);
     }
