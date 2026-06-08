@@ -10,6 +10,9 @@ concurrency:
   group: infra-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   # ─── OpenTofu infra validation ───────────────────────────────────────────
   # Validates HCL format + provider schema without needing backend credentials.
@@ -18,10 +21,10 @@ jobs:
     name: Infra (OpenTofu fmt + validate)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set up OpenTofu
-        uses: opentofu/setup-opentofu@v1
+        uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
         with:
           tofu_version: "latest"
 

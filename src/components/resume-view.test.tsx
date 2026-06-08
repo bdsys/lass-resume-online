@@ -116,10 +116,18 @@ describe("ResumeView", () => {
     expect(container.querySelector('[data-mode="dark"]')).toBeInTheDocument();
   });
 
-  it("calls window.print when Save PDF button is clicked", () => {
+  it("renders a download link for the PDF artifact", () => {
+    render(<ResumeView resume={RESUME} />);
+    const link = screen.getByTitle("Download PDF") as HTMLAnchorElement;
+    expect(link.tagName).toBe("A");
+    expect(link.getAttribute("href")).toBe("/AndrewLass-Resume.pdf");
+    expect(link.getAttribute("download")).toBe("AndrewLass-Resume.pdf");
+  });
+
+  it("calls window.print when Print button is clicked", () => {
     const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
     render(<ResumeView resume={RESUME} />);
-    fireEvent.click(screen.getByTitle("Save as PDF"));
+    fireEvent.click(screen.getByTitle("Print / Save as PDF"));
     expect(printSpy).toHaveBeenCalledOnce();
     printSpy.mockRestore();
   });
