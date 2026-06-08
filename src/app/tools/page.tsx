@@ -47,6 +47,12 @@ export default function ToolsPage() {
             <code className="font-mono text-xs">whats-my-ip</code> and{" "}
             <code className="font-mono text-xs">who-should-i-hire</code>.
           </p>
+          <p className="font-mono text-xs text-[var(--color-text-muted)]">
+            Tell your agentic coding tool:
+          </p>
+          <pre className="rounded border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 font-mono text-xs text-[var(--color-accent)] overflow-x-auto">
+            <code>fetch andrewlass.com/tools/prompt.md</code>
+          </pre>
           <a
             href="/tools/prompt.md"
             className="inline-flex items-center gap-2 font-mono text-xs text-[var(--color-accent)] hover:underline"
