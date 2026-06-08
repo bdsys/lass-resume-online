@@ -62,6 +62,49 @@ export async function kvGet<T>(key: string): Promise<T | null> {
   }
 }
 
+/** Subset of Cloudflare's IncomingRequestCfProperties we expose on the IP route. */
+export type CfGeoData = {
+  country?:        string;
+  region?:         string;
+  city?:           string;
+  continent?:      string;
+  asOrganization?: string;
+  asn?:            number;
+  colo?:           string;
+  tlsVersion?:     string;
+  httpProtocol?:   string;
+};
+
+/**
+ * Returns selected Cloudflare request metadata from `getCloudflareContext().cf`.
+ * Returns `null` outside the Workers runtime (dev / build / Vitest).
+ */
+export async function getCf(): Promise<CfGeoData | null> {
+  try {
+    const { cf } = await getCloudflareContext({ async: true });
+    if (!cf) return null;
+    // Extract only the subset we intend to expose publicly
+    const {
+      country, region, city, continent,
+      asOrganization, asn, colo,
+      tlsVersion, httpProtocol,
+    } = cf as Record<string, unknown>;
+    return {
+      country:        country        as string | undefined,
+      region:         region         as string | undefined,
+      city:           city           as string | undefined,
+      continent:      continent      as string | undefined,
+      asOrganization: asOrganization as string | undefined,
+      asn:            asn            as number | undefined,
+      colo:           colo           as string | undefined,
+      tlsVersion:     tlsVersion     as string | undefined,
+      httpProtocol:   httpProtocol   as string | undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Stores a JSON-serialised value in KV with the given TTL (seconds).
  * Non-fatal on error — callers continue without caching.

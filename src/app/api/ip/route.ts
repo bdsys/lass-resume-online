@@ -7,15 +7,18 @@
  *       This is the format that curl/wget consumers expect (icanhazip-style).
  *
  *   - ?format=json OR Accept: application/json:
- *       application/json — { "ip": "1.2.3.4" }
- *       Used by the on-site IP tool button.
+ *       application/json — { ip, country, region, city, continent,
+ *                             asOrganization, asn, colo, tlsVersion, httpProtocol }
+ *       CF geo/network fields are null outside the Workers runtime.
+ *       Used by the on-site IP tool.
  *
  * The subdomain ip.andrewlass.com is rewritten to this route via the
  * next.config.ts host-based rewrite, so `curl https://ip.andrewlass.com`
- * also hits this handler.
+ * also hits this handler (plain-text path unchanged).
  */
 
 import { getClientIp } from "@/lib/client-ip";
+import { getCf }       from "@/lib/cf-env";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +31,19 @@ export async function GET(request: Request): Promise<Response> {
     (request.headers.get("accept") ?? "").includes("application/json");
 
   if (wantsJson) {
-    return Response.json({ ip });
+    const cf = await getCf();
+    return Response.json({
+      ip,
+      country:        cf?.country        ?? null,
+      region:         cf?.region         ?? null,
+      city:           cf?.city           ?? null,
+      continent:      cf?.continent      ?? null,
+      asOrganization: cf?.asOrganization ?? null,
+      asn:            cf?.asn            ?? null,
+      colo:           cf?.colo           ?? null,
+      tlsVersion:     cf?.tlsVersion     ?? null,
+      httpProtocol:   cf?.httpProtocol   ?? null,
+    });
   }
 
   return new Response(ip + "\n", {

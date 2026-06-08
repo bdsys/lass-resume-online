@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/content-check.mjs",
+    "prebuild": "node scripts/content-check.mjs && node scripts/build-resume-pdf.mjs",
     "build": "next build",
     "build:worker": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare preview",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@react-pdf/renderer": "^4.5.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

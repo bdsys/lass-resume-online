@@ -8,7 +8,7 @@
  * All network calls are mocked; no real HTTP is made.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { POST } from "./route";
+import { GET, POST } from "./route";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -142,7 +142,8 @@ describe("KV cache", () => {
     expect(vi.mocked(globalThis.fetch)).toHaveBeenCalledTimes(1);
 
     await Promise.resolve();
-    expect(kv.put).toHaveBeenCalledOnce();
+    // Two puts: cache write + counter increment (xss is a non-benign attack)
+    expect(kv.put).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -290,5 +291,37 @@ describe("result shape", () => {
     expect(data.wafFetch.url).toContain("waf-demo.andrewlass.com");
     expect(data.wafFetch.demoKey).toBe("test-demo-key");
     expect(data.cached).toBe(false);
+  });
+});
+// ---------------------------------------------------------------------------
+// GET /api/waf-demo — stats endpoint
+// ---------------------------------------------------------------------------
+
+describe("GET /api/waf-demo stats", () => {
+  it("returns totalAttacks: 0 when KV has no counter", async () => {
+    const kv = makeKV(null);
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { totalAttacks: number };
+    expect(data.totalAttacks).toBe(0);
+  });
+
+  it("returns the stored counter value from KV", async () => {
+    const kv = {
+      get: vi.fn().mockResolvedValue("42"),
+      put: vi.fn().mockResolvedValue(undefined),
+    };
+    (globalThis as Record<string, unknown>).GITHUB_CACHE = kv;
+    const res = await GET();
+    const data = (await res.json()) as { totalAttacks: number };
+    expect(data.totalAttacks).toBe(42);
+  });
+
+  it("returns totalAttacks: 0 when no KV is available", async () => {
+    delete (globalThis as Record<string, unknown>).GITHUB_CACHE;
+    const res = await GET();
+    const data = (await res.json()) as { totalAttacks: number };
+    expect(data.totalAttacks).toBe(0);
   });
 });
