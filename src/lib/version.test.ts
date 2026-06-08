@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { getVersion } from "./version";
+import { getVersion, VersionSchema } from "./version";
 
 describe("getVersion()", () => {
   it("returns a valid Version object without throwing", () => {
@@ -35,5 +35,10 @@ describe("getVersion()", () => {
   it("date is in YYYY-MM-DD format or a valid fallback", () => {
     const { date } = getVersion();
     expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("satisfies the full Zod schema", () => {
+    const result = VersionSchema.safeParse(getVersion());
+    expect(result.success).toBe(true);
   });
 });

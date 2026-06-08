@@ -16,7 +16,7 @@ import versionJson from "../data/version.json";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
-const VersionSchema = z.object({
+export const VersionSchema = z.object({
   number: z.string(),
   name: z.string(),
   sha: z.string(),

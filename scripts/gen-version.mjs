@@ -77,6 +77,8 @@ if (latestTag) {
 // name: annotation subject of the latest tag, fallback to "dev"
 let name = 'dev';
 if (latestTag) {
+  // Note: only annotated tags carry a name (git tag -a ... -m "Name").
+  // Lightweight tags (git tag vX.Y.Z) have no message → name falls back to "dev".
   const tagMsg = git(`tag -l --format='%(contents:subject)' ${latestTag}`);
   if (tagMsg) {
     name = tagMsg;
