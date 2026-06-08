@@ -42,6 +42,29 @@ export default function ToolsPage() {
         </h2>
         <LlmCompare />
       </section>
+      {/* Plugin marketplace */}
+      <section aria-labelledby="plugin-heading">
+        <h2
+          id="plugin-heading"
+          className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-6"
+        >
+          Claude Code Plugin Marketplace
+        </h2>
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 space-y-3 max-w-lg">
+          <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
+            The <span className="font-mono text-[var(--color-accent)]">lass-labs</span> marketplace
+            adds two Claude Code plugins:{" "}
+            <code className="font-mono text-xs">whats-my-ip</code> and{" "}
+            <code className="font-mono text-xs">who-should-i-hire</code>.
+          </p>
+          <a
+            href="/tools/prompt.md"
+            className="inline-flex items-center gap-2 font-mono text-xs text-[var(--color-accent)] hover:underline"
+          >
+            View agent setup instructions →
+          </a>
+        </div>
+      </section>
     </div>
   );
 }
