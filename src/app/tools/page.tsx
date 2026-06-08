@@ -32,16 +32,6 @@ export default function ToolsPage() {
         <IpTool />
       </section>
 
-      {/* LLM comparison */}
-      <section aria-labelledby="llm-compare-heading">
-        <h2
-          id="llm-compare-heading"
-          className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-6"
-        >
-          Claude Haiku vs Gemini Flash
-        </h2>
-        <LlmCompare />
-      </section>
       {/* Plugin marketplace */}
       <section aria-labelledby="plugin-heading">
         <h2
@@ -64,6 +54,17 @@ export default function ToolsPage() {
             View agent setup instructions →
           </a>
         </div>
+      </section>
+
+      {/* LLM comparison */}
+      <section aria-labelledby="llm-compare-heading">
+        <h2
+          id="llm-compare-heading"
+          className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-6"
+        >
+          Claude Haiku vs Gemini Flash
+        </h2>
+        <LlmCompare />
       </section>
     </div>
   );
