@@ -102,6 +102,27 @@ export default async function HomePage() {
               </div>
             )}
 
+            {resume.frameworks && resume.frameworks.length > 0 && (
+              <div aria-labelledby="frameworks-heading">
+                <h2
+                  id="frameworks-heading"
+                  className="font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3"
+                >
+                  Frameworks
+                </h2>
+                <ul className="flex flex-wrap gap-2.5">
+                  {resume.frameworks.map((framework) => (
+                    <li
+                      key={framework}
+                      className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-1.5 font-mono text-xs text-[var(--color-text-muted)]"
+                    >
+                      {framework}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <TerminalIntro />
           </div>
 

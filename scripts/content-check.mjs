@@ -70,6 +70,16 @@ if (data.industries !== undefined) {
   }
 }
 
+// ── Frameworks ────────────────────────────────────────────────────────────────
+
+if (data.frameworks !== undefined) {
+  if (!Array.isArray(data.frameworks) || data.frameworks.some(f => typeof f !== 'string')) {
+    errors.push('frameworks: must be an array of strings');
+  } else {
+    console.log(`✓  ${data.frameworks.length} frameworks: ${data.frameworks.join(', ')}`);
+  }
+}
+
 // ── Contact ───────────────────────────────────────────────────────────────────
 
 if (!data.contact || typeof data.contact !== 'object') {
