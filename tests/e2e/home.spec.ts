@@ -26,11 +26,12 @@ test.describe("Homepage", () => {
     expect(src).toBeTruthy();
   });
 
-  test("renders the GitHub bio text", async ({ page }) => {
+  test("renders the hero summary text", async ({ page }) => {
     await page.goto("/");
-    // Bio comes from the fixture mock server
+    // Homepage now shows the first sentence of the curated resume summary.
+    // Scope to <p> to avoid matching "Splunk (12+ years)" / "Nagios (12+ years)" <li>s.
     await expect(
-      page.getByText(/systems and network engineer/i)
+      page.locator("p").filter({ hasText: /12\+ years/i })
     ).toBeVisible();
   });
 

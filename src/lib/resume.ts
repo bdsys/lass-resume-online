@@ -49,6 +49,7 @@ export const ResumeSchema = z.object({
   name: z.string(),
   headline: z.string(),
   pillars: z.array(z.string()),
+  clouds: z.array(z.string()).optional(),
   industries: z.array(z.string()).optional(),
   frameworks: z.array(z.string()).optional(),
   contact: ContactSchema,

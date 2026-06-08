@@ -13,7 +13,7 @@
  * clients (browsers, curl, etc.) trigger WAF rules.
  */
 
-import { getSecret, kvGet, kvSet } from "@/lib/cf-env";
+import { getSecret, kvGet, kvSet, getKV } from "@/lib/cf-env";
 
 // This route calls external services at request time — always dynamic
 export const dynamic = "force-dynamic";
@@ -126,6 +126,49 @@ function buildWafUrl(attack: AttackType): string {
 }
 
 // ---------------------------------------------------------------------------
+// Counter helpers
+// ---------------------------------------------------------------------------
+
+/** KV key for the cumulative "attacks run" counter. */
+const COUNTER_KEY = "waf:attacks:total";
+
+/**
+ * Increments the cumulative attack counter in KV (non-atomic, eventually
+ * consistent — same design as rate-limit.ts which intentionally uses
+ * non-atomic increments for this class of vanity/best-effort counters).
+ */
+async function incrementAttackCounter(): Promise<void> {
+  const kv = await getKV();
+  if (!kv) return;
+  try {
+    const raw = await kv.get(COUNTER_KEY);
+    const current = raw ? parseInt(raw, 10) : 0;
+    // No TTL — this counter should persist indefinitely
+    await kv.put(COUNTER_KEY, String(current + 1));
+  } catch {
+    // Non-fatal — counter miss doesn't affect the demo
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET handler — returns cumulative stats
+// ---------------------------------------------------------------------------
+
+export async function GET(): Promise<Response> {
+  const kv = await getKV();
+  let total = 0;
+  if (kv) {
+    try {
+      const raw = await kv.get(COUNTER_KEY);
+      total = raw ? parseInt(raw, 10) : 0;
+    } catch {
+      // Fall through with zero
+    }
+  }
+  return Response.json({ totalAttacks: total });
+}
+
+// ---------------------------------------------------------------------------
 // POST handler
 // ---------------------------------------------------------------------------
 
@@ -171,6 +214,11 @@ export async function POST(request: Request): Promise<Response> {
 
   const payload: StoredPayload = { attack, label: ATTACK_LABELS[attack], direct, wafUrl };
   void kvSet(cacheKey, payload, CACHE_TTL_SECONDS);
+
+  // Increment the cumulative counter for non-benign attacks on new runs
+  if (attack !== "benign") {
+    void incrementAttackCounter();
+  }
 
   return Response.json({
     ...payload,
