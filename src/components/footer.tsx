@@ -49,7 +49,7 @@ export function Footer() {
           className="font-mono text-xs text-[var(--color-text-dim)] pb-3 text-center"
           title={`${version.describe} · ${version.date}`}
         >
-          v{version.number} &middot; &ldquo;{version.name}&rdquo;
+          v{version.number} &middot; &ldquo;{version.name}&rdquo; &middot; {version.environment}
         </p>
       )}
     </footer>

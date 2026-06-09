@@ -37,6 +37,12 @@ describe("getVersion()", () => {
     expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
+  it("environment is a non-empty string", () => {
+    const { environment } = getVersion();
+    expect(typeof environment).toBe("string");
+    expect(environment.length).toBeGreaterThan(0);
+  });
+
   it("satisfies the full Zod schema", () => {
     const result = VersionSchema.safeParse(getVersion());
     expect(result.success).toBe(true);

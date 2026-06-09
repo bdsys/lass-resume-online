@@ -62,6 +62,8 @@ jobs:
 
       - name: Build worker (OpenNext)
         run: npm run build:worker
+        env:
+          DEPLOY_ENV: production
 
       - name: Deploy to Cloudflare
         run: npm run deploy

@@ -1,0 +1,142 @@
+name: PR Version Comment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  comment:
+    name: Post version info
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0   # full history + tags so git describe works
+
+      - name: Gather version info and post PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # ── Gather git metadata ───────────────────────────────────────────────
+          SHA=$(git rev-parse --short HEAD)
+          DATE=$(git log -1 --format=%cs 2>/dev/null || echo "unknown")
+
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LATEST_TAG" ]; then
+            VERSION="${LATEST_TAG#v}"
+            NAME=$(git tag -l --format='%(contents:subject)' "$LATEST_TAG" 2>/dev/null || echo "")
+            DESCRIBE=$(git describe --tags --always --dirty 2>/dev/null || echo "$SHA")
+            if [ -z "$NAME" ]; then
+              TAG_TYPE="lightweight (no release name)"
+            else
+              TAG_TYPE="annotated"
+            fi
+          else
+            VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "unknown")
+            NAME=""
+            DESCRIBE="$SHA"
+            LATEST_TAG=""
+            TAG_TYPE="none"
+          fi
+
+          # ── Build the comment body ────────────────────────────────────────────
+          if [ -n "$LATEST_TAG" ] && [ -n "$NAME" ]; then
+            # Tagged release with a name
+            BODY=$(cat <<COMMENT
+          ## 🏷️ Version info for this PR
+
+          | Field | Value |
+          |---|---|
+          | Version | \`v${VERSION}\` |
+          | Release name | \`${NAME}\` |
+          | Commit | \`${SHA}\` |
+          | Git describe | \`${DESCRIBE}\` |
+          | Commit date | ${DATE} |
+
+          This PR carries release tag **\`${LATEST_TAG}\`** ("${NAME}"). Footer will show:
+          \`v${VERSION} · "${NAME}" · <environment>\`
+
+          ---
+          <details>
+          <summary>How to change the version or release name</summary>
+
+          Delete the old tag locally and re-tag:
+          \`\`\`bash
+          git tag -d ${LATEST_TAG}
+          git push origin :refs/tags/${LATEST_TAG}
+          git tag -a v1.2.3 -m "NewName"
+          git push origin v1.2.3
+          \`\`\`
+
+          **Rules:**
+          - Tag name = version number — must start with \`v\` followed by semver (e.g. \`v1.2.3\`)
+          - Tag message = release codename (e.g. \`-m "Ironclad"\`)
+          - Must use \`-a\` (annotated) — lightweight tags have no message and fall back to \`"dev"\`
+          </details>
+          COMMENT
+          )
+          elif [ -n "$LATEST_TAG" ] && [ "$TAG_TYPE" = "lightweight (no release name)" ]; then
+            # Tagged but lightweight — no name
+            BODY=$(cat <<COMMENT
+          ## 🏷️ Version info for this PR
+
+          | Field | Value |
+          |---|---|
+          | Version | \`v${VERSION}\` |
+          | Release name | *(none — lightweight tag)* |
+          | Commit | \`${SHA}\` |
+          | Commit date | ${DATE} |
+
+          ⚠️ **Tag \`${LATEST_TAG}\` is a lightweight tag** — it has no release name, so the footer will show \`"dev"\` for the name.
+
+          To add a release name, delete the lightweight tag and re-create it as annotated:
+          \`\`\`bash
+          git tag -d ${LATEST_TAG}
+          git push origin :refs/tags/${LATEST_TAG}
+          git tag -a ${LATEST_TAG} -m "YourReleaseName"
+          git push origin ${LATEST_TAG}
+          \`\`\`
+          COMMENT
+          )
+          else
+            # No tags — using package.json fallback
+            BODY=$(cat <<COMMENT
+          ## 🏷️ Version info for this PR
+
+          | Field | Value |
+          |---|---|
+          | Version | \`v${VERSION}\` *(package.json fallback — no git tag)* |
+          | Release name | \`dev\` *(fallback)* |
+          | Commit | \`${SHA}\` |
+          | Commit date | ${DATE} |
+
+          No annotated git tag found on this branch. The footer will show \`v${VERSION} · "dev" · <environment>\`.
+
+          **If this PR cuts a new release**, tag it before merging:
+          \`\`\`bash
+          git tag -a v0.2.0 -m "YourReleaseName"
+          git push origin v0.2.0
+          \`\`\`
+
+          **If this PR is not a release**, no action needed — the fallback values are fine.
+
+          ---
+          <details>
+          <summary>Version + release name rules</summary>
+
+          - Tag name = version number — must start with \`v\` followed by semver (e.g. \`v0.2.0\`)
+          - Tag message = release codename (e.g. \`-m "Ironclad"\`)
+          - Must use \`-a\` (annotated tag) — lightweight tags (\`git tag v0.2.0\` with no \`-a\`) carry no message and fall back to \`"dev"\`
+          - Push the tag separately: \`git push origin v0.2.0\` (regular \`git push\` does not push tags)
+          </details>
+          COMMENT
+          )
+          fi
+
+          # ── Post the comment ──────────────────────────────────────────────────
+          gh pr comment "$PR_NUMBER" --body "$BODY"

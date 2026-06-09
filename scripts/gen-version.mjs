@@ -102,9 +102,21 @@ console.log(`✓  version.describe: ${describe}`);
 const date = git('log -1 --format=%cs') ?? todayISO();
 console.log(`✓  version.date: ${date}`);
 
+// environment: which deployment context produced this build.
+//   DEPLOY_ENV env var wins (set it to "preview" for CF preview deploys).
+//   Falls back to: next dev → "local"; CI build → "production"; else → "local".
+const environment =
+  process.env.DEPLOY_ENV ??
+  (process.env.NODE_ENV === 'development'
+    ? 'local'
+    : process.env.CI
+    ? 'production'
+    : 'local');
+console.log(`✓  version.environment: ${environment}`);
+
 // ── Write generated JSON ──────────────────────────────────────────────────────
 
-const data = { number, name, sha, describe, date };
+const data = { number, name, sha, describe, date, environment };
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(OUT_PATH, JSON.stringify(data, null, 2) + '\n');

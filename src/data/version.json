@@ -1,7 +1,8 @@
 {
   "number": "0.1.0",
   "name": "dev",
-  "sha": "536560a",
-  "describe": "536560a-dirty",
-  "date": "2026-06-08"
+  "sha": "2ee7e29",
+  "describe": "2ee7e29-dirty",
+  "date": "2026-06-08",
+  "environment": "local"
 }

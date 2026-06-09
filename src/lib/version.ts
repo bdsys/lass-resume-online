@@ -22,6 +22,7 @@ export const VersionSchema = z.object({
   sha: z.string(),
   describe: z.string(),
   date: z.string(),
+  environment: z.string(),
 });
 
 export type Version = z.infer<typeof VersionSchema>;
