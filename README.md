@@ -15,12 +15,13 @@ Personal developer/security portfolio for Andrew Lass — Senior Cloud Security 
 
 ## What's here
 
-| Route        | Description                                                   | Phase |
-|--------------|---------------------------------------------------------------|-------|
-| `/`          | Bio/about from live GitHub API, terminal intro, skills        | 1 ✅   |
-| `/portfolio` | GitHub repos via REST + GraphQL, KV-cached, topic-categorized | 2 ✅   |
-| `/resume`    | Typeset resume from `content/resume.json` + PDF download      | 3 ✅   |
-| `/security`  | Live WAF demo — Cloudflare WAF blocks attacks on a Fly.io app | 5 ✅   |
+| Route        | Description                                                                             | Phase |
+|--------------|-----------------------------------------------------------------------------------------|-------|
+| `/`          | Bio/about from live GitHub API, terminal intro, skills                                  | 1 ✅   |
+| `/portfolio` | GitHub repos via REST + GraphQL, KV-cached, topic-categorized                           | 2 ✅   |
+| `/resume`    | Typeset resume from `content/resume.yaml` + PDF download                                | 3 ✅   |
+| `/security`  | Live WAF demo — Cloudflare WAF blocks attacks on a Fly.io app                           | 5 ✅   |
+| `/tools`     | What's-my-IP, Claude Haiku vs Gemini Flash comparison, Claude Code plugin marketplace   | 6 ✅   |
 
 ---
 
@@ -32,34 +33,41 @@ flowchart TD
 
     subgraph cf["Cloudflare"]
         worker["Next.js on Workers<br/>(OpenNext adapter)"]
-        kv[("KV cache<br/>GITHUB_CACHE · ~1h TTL")]
+        kv[("KV · GITHUB_CACHE binding<br/>GitHub cache ~1h TTL +<br/>rate-limit &amp; attack counters")]
         waf{{"Cloudflare WAF<br/>waf-demo.andrewlass.com"}}
     end
 
-    subgraph ext["External"]
-        gh["GitHub REST + GraphQL API"]
+    subgraph ext["External APIs"]
+        gh["GitHub REST + GraphQL"]
+        anthropic["Anthropic API<br/>(Claude Haiku)"]
+        google["Google Gemini API<br/>(Gemini Flash)"]
         fly["Fly.io demo backend<br/>lass-waf-demo.fly.dev"]
     end
 
     fallback[/"Static fallback<br/>data/github-fallback.json"/]
 
     visitor -->|andrewlass.com| worker
-    worker -->|"/, /portfolio, /resume, /security"| visitor
+    worker -->|"/, /portfolio, /resume,<br/>/security, /tools"| visitor
 
     worker -->|"1. read"| kv
     worker -->|"2. cache miss"| gh
     worker -->|"3. API offline"| fallback
 
-    visitor -->|"attack request (browser-side)"| waf
+    worker -->|"/api/llm-compare<br/>(rate-limited via KV)"| anthropic
+    worker -->|/api/llm-compare| google
+
+    visitor -->|"attack (browser-side)<br/>X-Demo-Key gate"| waf
     waf -->|"blocked / allowed"| fly
-    worker -.->|"direct fetch (bypasses WAF, shows raw exploit)"| fly
+    worker -.->|"direct fetch — bypasses WAF,<br/>raw exploit · X-Demo-Key"| fly
 ```
 
-GitHub data is read KV cache → GitHub API → static fallback, in that order
-(`src/lib/github.ts`). The WAF demo deliberately fires attacks two ways: a
-server-side **direct** fetch to Fly (bypasses the WAF, shows the raw exploit) and
-a **browser-side** fetch through `waf-demo.andrewlass.com` (hits the real
-Cloudflare WAF edge — Worker subrequests to the same zone skip WAF rules by design).
+GitHub data flows KV cache → GitHub API → static fallback, in that order
+(`src/lib/github.ts`). The KV binding also backs per-caller rate-limiting and attack
+counters. The LLM comparison tool fires Claude Haiku and Gemini Flash in parallel,
+rate-limited via KV. The WAF demo fires attacks two ways: a server-side **direct**
+fetch to Fly (bypasses the WAF, shows the raw exploit) and a **browser-side** fetch
+through `waf-demo.andrewlass.com` (hits the real Cloudflare WAF edge — both paths
+send the `X-Demo-Key` gate header).
 
 ---
 
@@ -137,7 +145,18 @@ pattern = "andrewlass.com"
 custom_domain = true
 ```
 
-### 5. (Optional) Cloudflare Web Analytics
+### 5. LLM comparison secrets — required for `/tools`
+
+The Claude Haiku vs Gemini Flash comparison on `/tools` needs two API keys:
+
+```bash
+npx wrangler secret put ANTHROPIC_API_KEY   # Anthropic Console key
+npx wrangler secret put GOOGLE_API_KEY      # Google AI Studio key
+```
+
+Both are optional — the tool shows per-provider errors if a key is missing.
+
+### 6. (Optional) Cloudflare Web Analytics
 
 Cookieless analytics. Create a site token in the Cloudflare dashboard → Web
 Analytics, then expose it as `NEXT_PUBLIC_CF_BEACON_TOKEN` (e.g. a `wrangler`
@@ -147,9 +166,11 @@ var). The beacon is a no-op when the variable is unset.
 
 ## Deployment
 
-Deploys are **automated**: pushing to `main` (typically by merging `dev → main`) runs the
-`deploy.yml` workflow, which gates on lint/typecheck/unit tests and then builds and deploys the
-Worker. You can also trigger it manually from the Actions tab (**Deploy → Run workflow**).
+### Production
+
+Deploys are **automated**: pushing to `main` (typically by merging `dev → main`) triggers
+`deploy.yml`, which gates on lint/typecheck/unit tests then builds and deploys the Worker.
+You can also trigger it manually from the Actions tab (**Deploy → Run workflow**).
 
 First-time setup requires two GitHub repo secrets (Settings → Secrets and variables → Actions):
 
@@ -165,18 +186,52 @@ npm run build:worker   # Build with OpenNext Cloudflare adapter
 npm run deploy         # Deploy the built worker to Cloudflare
 ```
 
+### Preview / staging
+
+A separate preview Worker (`lass-resume-online-preview`) deploys to
+`preview.www.andrewlass.com` by pushing to the `preview` branch (triggers
+`deploy-preview.yml`). It uses the `[env.preview]` config in `wrangler.toml`.
+
+The preview Worker has its own secret store — set these once before first use:
+
+```bash
+npx wrangler secret put GITHUB_TOKEN --env preview
+npx wrangler secret put ANTHROPIC_API_KEY --env preview
+npx wrangler secret put GOOGLE_API_KEY --env preview
+npx wrangler secret put DEMO_KEY --env preview   # must match production DEMO_KEY
+```
+
+### Versioning and releases
+
+Every build bakes version metadata into the footer via `scripts/gen-version.mjs`.
+The source of truth is the most recent annotated git tag:
+
+```bash
+git tag -a v1.2.3 -m "ReleaseName"   # tag name = version, message = codename
+git push origin v1.2.3
+```
+
+The footer renders: `v1.2.3 · "ReleaseName" · <environment>` where environment is
+`production` (main deploy), `preview` (preview deploy), or `local` (dev).
+Lightweight tags (no `-m`) fall back to codename `"dev"`. The `version-comment.yml`
+workflow posts the version + codename as a comment on every PR.
+
+See [CHANGELOG.md](CHANGELOG.md) for a history of tagged releases.
+
 ### CI
 
-GitHub Actions runs four test workflows on every push/PR to `main` and `dev`, plus a deploy
-workflow on `main`. Each has its own status badge above:
+GitHub Actions runs independent test workflows on every push/PR to `main` and `dev`,
+plus deploy workflows. Each has its own status badge above:
 
-| Workflow      | Trigger                | What it does                                       |
-|---------------|------------------------|----------------------------------------------------|
-| `quality.yml` | push/PR `main`, `dev`  | lint · typecheck · Vitest unit tests               |
-| `waf.yml`     | push/PR `main`, `dev`  | waf-demo-app typecheck · unit tests · Docker smoke  |
-| `infra.yml`   | push/PR `main`, `dev`  | OpenTofu `fmt -check` + `validate` (no backend)     |
-| `e2e.yml`     | push/PR `main`, `dev`  | Playwright end-to-end tests (ubuntu-22.04)          |
-| `deploy.yml`  | push `main` / manual   | quality gate → build worker → deploy to Cloudflare  |
+| Workflow              | Trigger                  | What it does                                         |
+|-----------------------|--------------------------|------------------------------------------------------|
+| `quality.yml`         | push/PR `main`, `dev`    | lint · typecheck · Vitest unit tests                 |
+| `waf.yml`             | push/PR `main`, `dev`    | waf-demo-app typecheck · unit tests · Docker smoke   |
+| `infra.yml`           | push/PR `main`, `dev`    | OpenTofu `fmt -check` + `validate` (no backend)      |
+| `e2e.yml`             | push/PR `main`, `dev`    | Playwright end-to-end tests (ubuntu-22.04)           |
+| `deploy.yml`          | push `main` / manual     | quality gate → build worker → deploy to production   |
+| `deploy-preview.yml`  | push `preview` / manual  | quality gate → build worker → deploy to preview      |
+| `version-comment.yml` | PR opened / updated      | posts version number + release codename as PR comment |
 
 ---
 
