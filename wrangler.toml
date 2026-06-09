@@ -37,6 +37,7 @@ custom_domain = true
 #   npx wrangler secret put GITHUB_TOKEN --env preview
 #   npx wrangler secret put ANTHROPIC_API_KEY --env preview
 #   npx wrangler secret put GOOGLE_API_KEY --env preview
+#   npx wrangler secret put DEMO_KEY --env preview   ← must match production DEMO_KEY (the Fly X-Demo-Key value)
 
 [env.preview]
 name = "lass-resume-online-preview"
