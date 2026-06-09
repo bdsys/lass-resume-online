@@ -194,7 +194,15 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "DEMO_KEY secret not configured" }, { status: 500 });
   }
 
-  // 3. KV cache check — demoKey is added at response time, never stored
+  // 3. Increment the cumulative counter before the cache check so that every
+  // attack run is counted — including cache hits that return early below.
+  // Awaited (not fire-and-forget) so the KV write commits before the Workers
+  // runtime tears down the request context.
+  if (attack !== "benign") {
+    await incrementAttackCounter();
+  }
+
+  // 4. KV cache check — demoKey is added at response time, never stored
   const cacheKey = `waf-demo:${attack}`;
   const hit = await kvGet<StoredPayload>(cacheKey);
   if (hit) {
@@ -205,20 +213,15 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
-  // 4. Fetch direct path server-side (bypasses WAF by design — shows raw exploit)
+  // 5. Fetch direct path server-side (bypasses WAF by design — shows raw exploit)
   const spec = ATTACK_MAP[attack];
   const direct = await fireAttack(DIRECT_BASE, spec, demoKey);
 
-  // 5. Build WAF URL for browser-side fetch (real external request → WAF fires)
+  // 6. Build WAF URL for browser-side fetch (real external request → WAF fires)
   const wafUrl = buildWafUrl(attack);
 
   const payload: StoredPayload = { attack, label: ATTACK_LABELS[attack], direct, wafUrl };
   void kvSet(cacheKey, payload, CACHE_TTL_SECONDS);
-
-  // Increment the cumulative counter for non-benign attacks on new runs
-  if (attack !== "benign") {
-    void incrementAttackCounter();
-  }
 
   return Response.json({
     ...payload,

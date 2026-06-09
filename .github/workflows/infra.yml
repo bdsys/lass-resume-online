@@ -21,10 +21,10 @@ jobs:
     name: Infra (OpenTofu fmt + validate)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6
 
       - name: Set up OpenTofu
-        uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
+        uses: opentofu/setup-opentofu@847eaa4afeb791b06daa46e8eafa8b1b68d7cfb4 # v2
         with:
           tofu_version: "latest"
 

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/content-check.mjs && node scripts/build-resume-pdf.mjs",
+    "prebuild": "node scripts/content-check.mjs && node scripts/build-resume-pdf.mjs && node scripts/gen-version.mjs",
     "build": "next build",
     "build:worker": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare preview",
