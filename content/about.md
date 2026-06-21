@@ -11,7 +11,7 @@ OpenTofu module that automates the firewall fleet it approves.
 
 At SAP Concur I led the multi-region DMZ 2.0 re-architecture (Gateway Load Balancer-fronted
 FortiGate across 8+ global environments), drove the OpenTofu migration for 100+ security
-appliances, and built the internal `mcs-network-skills` Claude Code plugin that encodes five
+appliances, and built an internal network-operations Claude Code plugin that encodes five
 years of operational knowledge into agentic automation for the team.
 
 At Nintendo of America I built the cloud governance function from scratch — 100+ AWS accounts,

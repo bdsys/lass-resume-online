@@ -61,7 +61,7 @@
         "FIPS 140-2/140-3",
         "DLP (Data Loss Prevention)",
         "PCI DSS · SOC 2 · SOX · CIS/NIST",
-        "GBaaS threat-feed automation"
+        "Threat-feed / block-list automation"
       ]
     },
     {
@@ -96,8 +96,8 @@
         "Cloud Custodian · AWS Config Rules",
         "SCPs · automated remediation",
         "Audit-evidence generation",
-        "SARB / SCORE / CACB approval workflows",
-        "FedRAMP (CTE-3) compliance",
+        "Architecture, change-advisory & security review board workflows",
+        "FedRAMP compliance",
         "Vulnerability management at scale"
       ]
     },
@@ -155,15 +155,15 @@
       "start": "2021-05",
       "end": "present",
       "bullets": [
-        "Designed and led DMZ 2.0 — a multi-region Gateway Load Balancer-fronted FortiGate re-architecture replacing the legacy AWS perimeter across all commercial environments (Integration, US2, EU2, APJ1, Fabian US, Fabian EMEA); SARB-approved February 2023, final cutover August 2025.",
-        "Obtained five-board governance approval (SARB, SCORE, CACB, FIPS review, SDLC pen-test) for centralized FortiManager including a FIPS 140-validated design for the CTE-3 FedRAMP environment; onboarded all seven environments in under six months; holds active HSPD-12 Public Trust (T2).",
-        "Led OpenTofu migration for the FortiGate fleet — bootstrapped the opentofu-deployer repository, authored 108 pull requests migrating from CloudFormation/Ansible to declarative IaC; first production cutover (FortiOS 7.4.11) completed May 2026.",
-        "Primary owner of Ansible-based firewall-pipeline managing the entire FortiGate fleet; executed continuous FortiOS upgrades 6.4 through 7.6, certificate lifecycle automation, password rotation, and IMDSv2 compliance hardening.",
-        "Closed 1,400+ vulnerability tickets (Tenable, AWS Inspector, Cloud Custodian, Orca, FIM, SIEM) across all environments — approximately 58% of all assigned work over five years.",
-        "Implemented IPv6 dual-stack across commercial and FedRAMP (CTE-3) environments totaling 124 tracked tickets; executed full CTE-3 reimplementation after initial rollout required revision.",
-        "Authored mcs-network-skills Claude Code plugin (11 skills) and manage the team's internal skills plugin repository — encoding five years of operational knowledge into agentic automation for vulnerability reporting, FortiGate health checks, change-request drafting, and team review.",
-        "Built and operate local LLM infrastructure on containerized and dedicated hardware — supporting long-running research jobs, web-triggered automation, cron-scheduled pipelines, and CI/CD-integrated LLM workflows; deployed FortiAI proof-of-concept into GS1 via FortiManager.",
-        "Built everything-as-code CI/CD platform (GitHub Enterprise + AWS CodeBuild/CodePipeline) for PR-gated deployment of AWS infrastructure and FortiGate security configurations across 8+ global production environments; 795 PRs authored and 836 reviewed over five years.",
+        "Designed and led DMZ 2.0 — a multi-region Gateway Load Balancer-fronted FortiGate re-architecture replacing the legacy AWS perimeter across all commercial environments spanning US, EU, and Asia-Pacific regions; architecture-review-board approved February 2023, final cutover August 2025.",
+        "Obtained five-board governance approval (architecture review, change advisory, security review, FIPS review, SDLC pen-test) for centralized FortiManager including a FIPS 140-validated design for the FedRAMP environment; onboarded all seven environments in under six months; holds active HSPD-12 Public Trust (T2).",
+        "Led OpenTofu migration for the FortiGate fleet — bootstrapped a greenfield OpenTofu deployment repository, authored 100+ pull requests migrating from CloudFormation/Ansible to declarative IaC; first production cutover (FortiOS 7.4.11) completed May 2026.",
+        "Primary owner of an Ansible-based firewall configuration pipeline managing the entire FortiGate fleet; executed continuous FortiOS upgrades 6.4 through 7.6, certificate lifecycle automation, password rotation, and IMDSv2 compliance hardening.",
+        "Closed 1,000+ vulnerability tickets (Tenable, AWS Inspector, Cloud Custodian, Orca, FIM, SIEM) across all environments — over half of all assigned work over five years.",
+        "Implemented IPv6 dual-stack across commercial and FedRAMP environments spanning 100+ tracked tickets; re-executed the full FedRAMP rollout after the initial implementation required revision.",
+        "Authored an internal network-operations Claude Code plugin (11 skills) and manage the team's internal skills plugin repository — encoding five years of operational knowledge into agentic automation for vulnerability reporting, FortiGate health checks, change-request drafting, and team review.",
+        "Built and operate local LLM infrastructure on containerized and dedicated hardware — supporting long-running research jobs, web-triggered automation, cron-scheduled pipelines, and CI/CD-integrated LLM workflows; deployed a FortiAI proof-of-concept into a production environment via FortiManager.",
+        "Built everything-as-code CI/CD platform (GitHub Enterprise + AWS CodeBuild/CodePipeline) for PR-gated deployment of AWS infrastructure and FortiGate security configurations across 8+ global production environments; 800+ PRs authored and 800+ reviewed over five years.",
         "Enforced PCI DSS, SOC 2, and SOX compliance using Cloud Custodian, AWS Config Rules, and SCPs; directly supported US and Japan audit and remediation cycles.",
         "Automated secrets and certificate lifecycle (HashiCorp Vault PKI, AppRole, OIDC) eliminating manual rotation toil across the firewall and infrastructure fleet.",
         "Operated full observability stack — Splunk (12+ years), CloudWatch, Prometheus, Grafana, GuardDuty — dashboards, anomaly detection, and automated triage runbooks across all environments.",
