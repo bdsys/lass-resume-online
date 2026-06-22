@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PlugInButton } from "@/components/plug-in-button";
 import { TerminalIntro } from "@/components/terminal-intro";
 import { WafCounter }   from "@/components/waf-counter";
 import { getGitHubUser } from "@/lib/github";
@@ -73,7 +74,8 @@ export default async function HomePage() {
             </div>
 
             {/* Secondary nav buttons */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 items-center">
+              <PlugInButton href="/journey" variant="pill" label="Plug in…" />
               <Link
                 href="/portfolio"
                 className="inline-flex items-center gap-2 rounded border border-[var(--color-accent-dim)] bg-[var(--color-bg-card)] px-5 py-2.5 font-mono text-sm text-[var(--color-accent)] hover:bg-[var(--color-accent-dim)] hover:text-[var(--color-bg)] transition-colors"
