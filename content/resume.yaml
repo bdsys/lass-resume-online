@@ -235,6 +235,16 @@ experience:
     bullets:
       - "Automated and managed deployments; provided SRE mentoring."
 
+  - company: "Digital West Networks, Inc."
+    title: "NOC Technician"
+    location: "San Luis Obispo County, CA"
+    start: "2011-12"
+    end: "2012-10"
+    bullets:
+      - "Delivered customer-facing NOC support for Digital West customers, escalating to Engineering when needed."
+      - "Performed data center administration and operations — remote-hands, cable terminating/pulling/planning, and power management."
+      - "Leveraged Linux systems administration to support hosted services including email and web hosting."
+
 # ── Education ─────────────────────────────────────────────────────────────────
 
 education:
