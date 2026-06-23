@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     ".wrangler/**",
     // Separate package with its own tooling — exclude entirely
     "waf-demo-app/**",
+    // Handoff drop-in scratch folder — not source; removed after the /journey PR merges
+    "integration/**",
   ]),
 ]);
 

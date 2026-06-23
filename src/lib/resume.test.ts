@@ -46,9 +46,9 @@ describe("getResume()", () => {
     }
   });
 
-  it("contains exactly 7 experience entries (canonical work history)", () => {
+  it("contains exactly 8 experience entries (canonical work history)", () => {
     const { experience } = getResume();
-    expect(experience).toHaveLength(7);
+    expect(experience).toHaveLength(8);
   });
 
   it("work history spine is correct and in order", () => {
@@ -61,6 +61,7 @@ describe("getResume()", () => {
       "Vix Technology",
       "ChemPoint Inc.",
       "MINDBODY",
+      "Digital West Networks, Inc.",
     ]);
   });
 

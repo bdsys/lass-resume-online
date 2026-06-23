@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
-import { Nav }    from "@/components/nav";
-import { Footer } from "@/components/footer";
+import { SiteChrome } from "@/components/site-chrome";
 import { getResume } from "@/lib/resume";
 import "./globals.css";
 
@@ -88,9 +87,8 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col bg-[var(--color-bg)] text-[var(--color-text)]">
-        <Nav />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        {/* SiteChrome renders Nav + Footer, except on immersive routes (/journey) */}
+        <SiteChrome>{children}</SiteChrome>
         {cfBeaconToken && (
           <Script
             src="https://static.cloudflareinsights.com/beacon.min.js"
