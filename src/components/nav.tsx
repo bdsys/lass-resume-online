@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PlugInButton } from "@/components/plug-in-button";
 
 const navLinks = [
   { href: "/portfolio", label: "Portfolio" },
@@ -36,6 +37,10 @@ export function Nav() {
               </Link>
             </li>
           ))}
+          {/* Matrix "Plug in…" CTA → the immersive /journey experience */}
+          <li className="ml-1.5">
+            <PlugInButton href="/journey" variant="toolbar" label="Plug in…" />
+          </li>
         </ul>
       </nav>
     </header>

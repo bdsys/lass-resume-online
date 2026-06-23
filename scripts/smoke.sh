@@ -94,6 +94,7 @@ check "/portfolio"  "lass-resume-online"
 check "/resume"     "Resume"
 check "/security"   "WAF Demo"
 check "/tools"      "Tools"
+check "/journey"    "Journey"
 
 # IP API — plain-text response
 check "/api/ip"     "."

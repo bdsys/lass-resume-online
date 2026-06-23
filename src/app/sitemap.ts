@@ -29,5 +29,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${BASE}/journey`,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
 }
