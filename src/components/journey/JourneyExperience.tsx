@@ -18,6 +18,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+
 import { getResume } from "@/lib/resume";
 
 // ── Resume data ────────────────────────────────────────────────────────────────
@@ -116,10 +117,10 @@ const VULNS_RAW = [
 const MILESTONES = [
   { hash: "a1f9c2e", tag: "opentofu", date: "2026-05", msg: "First production OpenTofu-managed FortiGate cluster cut over to a live environment" },
   { hash: "7d3b0a4", tag: "fortiai", date: "2026-05", msg: "FortiManager + FortiAI proof-of-concept deployed into a production environment" },
-  { hash: "c4e8f15", tag: "dmz2.0", date: "2025-08", msg: "DMZ 2.0 final region cutover complete — all commercial environments live" },
+  { hash: "c4e8f15", tag: "dmz2.0", date: "2025-08", msg: "DMZ 2.0 final region cutover complete; all commercial environments live" },
   { hash: "9b21d77", tag: "govern", date: "2025-06", msg: "FortiManager design cleared all five governance boards (incl. FIPS)" },
   { hash: "2f6ac90", tag: "sarb", date: "2023-02", msg: "DMZ 2.0 firewall design approved at the architecture review board" },
-  { hash: "0e1547b", tag: "init", date: "2021-06", msg: "Established codeowner on firewall-pipeline — the journey begins" },
+  { hash: "0e1547b", tag: "init", date: "2021-06", msg: "Established codeowner on firewall-pipeline; the journey begins" },
 ];
 
 interface Company {
@@ -135,19 +136,19 @@ interface Company {
 const COMPANIES: Company[] = [
   {
     short: "SAP Concur", company: "SAP (Concur)", title: "Sr. Cloud Security & Infrastructure Engineer", location: "Bellevue, WA", years: "2021 — Now",
-    tags: ["AWS", "FortiGate", "FedRAMP", "OpenTofu", "FIPS 140"],
+    tags: ["AWS", "FortiGate", "FedRAMP", "OpenTofu", "Cloud migration"],
     bullets: [
-      "Designed & led DMZ 2.0 — a multi-region Gateway Load Balancer-fronted FortiGate re-architecture across 8+ global environments. Architecture-board approved in 2023; final cutover 2025.",
-      "Drove the OpenTofu migration for the firewall fleet — ~100 PRs from CloudFormation/Ansible to declarative IaC; first production cutover 2026.",
-      "Won approval from five governance boards (architecture, security, change, FIPS, pen-test) for a FIPS 140-validated FortiManager design in a FedRAMP environment.",
+      "Designed & led DMZ 2.0, a multi-region Gateway Load Balancer-fronted FortiGate re-architecture across 8+ global environments. Architecture-board approved in 2023; final cutover 2025.",
+      "Drove the OpenTofu migration for the firewall fleet: ~100 PRs from CloudFormation/Ansible to declarative IaC; first production cutover 2026.",
+      "Led the migration effort to move SAP Concur from a colo-hybrid deployment to a fully AWS-hosted network edge.",
       "Closed 1,400+ vulnerability tickets (~58% of assigned work) and authored an internal Claude Code plugin encoding 5 years of ops knowledge.",
     ],
   },
   {
-    short: "Nintendo", company: "Nintendo of America", title: "Sr. Cloud Engineer — Platform Security & Governance", location: "Redmond, WA", years: "2018 — 2021",
+    short: "Nintendo", company: "Nintendo of America", title: "Sr. Cloud Engineer, Platform Security & Governance", location: "Redmond, WA", years: "2018 — 2021",
     tags: ["AWS Org", "Control Tower", "Azure", "CDK"],
     bullets: [
-      "Architected 100+ AWS accounts and 20+ Azure subscriptions from the ground up — structure, security baselines, cost allocation, network topology.",
+      "Architected 100+ AWS accounts and 20+ Azure subscriptions from the ground up: structure, security baselines, cost allocation, network topology.",
       "Built a structured AWS Organization on Control Tower with custom CDK/Python account vending, enforcing posture from day one.",
       "Designed hub-spoke VPC/VNET architecture with Palo Alto firewalls, CloudFront, Route53 governance, and least-privilege IAM frameworks.",
     ],
@@ -161,27 +162,36 @@ const COMPANIES: Company[] = [
     ],
   },
   {
-    short: "Univar", company: "Univar Inc.", title: "Senior Platform Engineer", location: "Redmond, WA", years: "2014 — 2017",
+    short: "Univar", company: "Univar Inc.", title: "Contractor → Sr. Platform Engineer (FTE)", location: "Redmond, WA", years: "2014 — 2017",
     tags: ["AWS", "DirectConnect", "Ansible", "MPLS"],
     bullets: [
-      "Founded the Cloud & Automation team for a Fortune 500 company.",
+      "Started as a contractor and converted to full-time Senior Platform Engineer; founded the Cloud & Automation team for a Fortune 500 company.",
       "Designed Univar's AWS presence including DirectConnect for MPLS connectivity.",
       "Implemented CloudFormation IaC and automation with Ansible, Chef, and Python.",
-      "Earlier drove IT engineering projects across the org — MPLS network implementation and call-center upgrades.",
+      "Earlier drove IT engineering projects across the org: MPLS network implementation and call-center upgrades.",
     ],
   },
   {
-    short: "MINDBODY", company: "MINDBODY", title: "Sr. Site Reliability Engineer", location: "San Luis Obispo, CA", years: "2012 — 2014",
+    short: "MINDBODY", company: "MINDBODY", title: "Site Reliability Engineer → Sr. SRE", location: "San Luis Obispo, CA", years: "2012 — 2014",
     tags: ["SRE", "Deploys", "Automation"],
     bullets: [
-      "Automated and managed deployments as a Senior SRE.",
+      "Promoted from SRE to Senior SRE; automated and managed production deployments.",
       "Provided SRE mentoring to the engineering team.",
+    ],
+  },
+  {
+    short: "Digital West", company: "Digital West Networks, Inc.", title: "NOC Technician", location: "San Luis Obispo County, CA", years: "2011 — 2012",
+    tags: ["NOC", "Data Center", "Linux"],
+    bullets: [
+      "Where it all started: front-line NOC support for Digital West customers, escalating to Engineering when needed.",
+      "Ran data-center operations: remote-hands, cable terminating / pulling / planning, and power management.",
+      "Leaned heavily on Linux systems knowledge to support email, web hosting, and other customer services.",
     ],
   },
 ];
 
 const CAT_MAP: Record<string, number> = {
-  sap: 0, sapconcur: 0, concur: 0, nintendo: 1, pse: 2, pugetsoundenergy: 2, univar: 3, mindbody: 4,
+  sap: 0, sapconcur: 0, concur: 0, nintendo: 1, pse: 2, pugetsoundenergy: 2, univar: 3, mindbody: 4, digitalwest: 5, "digital-west": 5,
 };
 
 /* Static graphic markup for each pipeline stage (no interactivity). */
@@ -444,17 +454,17 @@ export function JourneyExperience({
       { text: "  contact           email + links" },
       { text: "  clear             clear the screen" },
     ];
-    if (cmd === "whoami") return [{ text: "Andrew Lass — Senior Cloud Security & Infrastructure Engineer · Everett, WA", color: P.accent }];
+    if (cmd === "whoami") return [{ text: "Andrew Lass · Senior Cloud Security & Infrastructure Engineer · Everett, WA", color: P.accent }];
     if (cmd === "ls" || cmd === "ls .") return [{ text: "experience/   skills/   projects/   contact   resume.pdf", color: P.green }];
-    if (cmd === "ls experience/" || cmd === "ls experience") return COMPANIES.map((c) => ({ text: "  " + c.short.toLowerCase().replace(/\s+/g, "") + "/   " + c.company + " — " + c.years }));
+    if (cmd === "ls experience/" || cmd === "ls experience") return COMPANIES.map((c) => ({ text: "  " + c.short.toLowerCase().replace(/\s+/g, "") + "/   " + c.company + " · " + c.years }));
     if (cmd.startsWith("cat experience/") || cmd.startsWith("cat ")) {
       const key = cmd.replace("cat experience/", "").replace("cat ", "").replace(/\/$/, "").trim();
       const idx = CAT_MAP[key];
-      if (idx == null) return [{ text: "cat: " + key + ": no such role. try: sap, nintendo, pse, univar, mindbody", color: P.red }];
+      if (idx == null) return [{ text: "cat: " + key + ": no such role. try: sap, nintendo, pse, univar, mindbody, digitalwest", color: P.red }];
       const c = COMPANIES[idx];
       setSelectedCompany(idx);
       return [
-        { text: c.company + " — " + c.title, color: P.accent },
+        { text: c.company + " · " + c.title, color: P.accent },
         { text: c.location + "  ·  " + c.years, color: P.muted },
         ...c.bullets.map((b) => ({ text: "  • " + b })),
       ];
@@ -664,13 +674,19 @@ export function JourneyExperience({
   useEffect(() => {
     const host = flowRef.current;
     if (!host) return;
-    host.innerHTML = "";
     const colors = [PALETTE.accent, PALETTE.green, PALETTE.accent];
-    for (let i = 0; i < 4; i++) {
-      const d = document.createElement("span");
-      d.style.cssText = `position:absolute; top:0; left:0; width:7px; height:7px; border-radius:50%; background:${colors[i % colors.length]}; box-shadow:0 0 8px ${colors[i % colors.length]}; --dist:640px; animation:jflow ${4 + i * 0.8}s linear infinite; animation-delay:${i * 1.3}s;`;
-      host.appendChild(d);
-    }
+    const build = () => {
+      host.innerHTML = "";
+      const dist = `${Math.max(320, Math.round(host.getBoundingClientRect().width))}px`;
+      for (let i = 0; i < 4; i++) {
+        const d = document.createElement("span");
+        d.style.cssText = `position:absolute; top:0; left:0; width:7px; height:7px; border-radius:50%; background:${colors[i % colors.length]}; box-shadow:0 0 8px ${colors[i % colors.length]}; --dist:${dist}; animation:jflow ${4 + i * 0.8}s linear infinite; animation-delay:${i * 1.3}s;`;
+        host.appendChild(d);
+      }
+    };
+    build();
+    window.addEventListener("resize", build);
+    return () => window.removeEventListener("resize", build);
   }, []);
 
   /* ── telemetry count-up (on view, with fallbacks) ── */
@@ -815,7 +831,7 @@ export function JourneyExperience({
                 <canvas ref={matrixCanvasRef} style={css("position:absolute; inset:0; width:100%; height:100%; opacity:0.6;")} />
                 <span style={css(`position:relative; z-index:1; font-family:${FONT_MONO}; font-size:15px; font-weight:600; letter-spacing:0.3em; color:#bbf7d0; text-shadow:0 0 10px #10b981;`)}>▶ DEPLOY</span>
               </button>
-              <span style={css(`font-family:${FONT_MONO}; font-size:12px; color:#475569;`)}>push to ship — runs the 6-stage pipeline</span>
+              <span style={css(`font-family:${FONT_MONO}; font-size:12px; color:#475569;`)}>push to ship · runs the 6-stage pipeline</span>
             </>
           )}
           {deployState === "running" && (
@@ -836,7 +852,7 @@ export function JourneyExperience({
             <>
               <span style={css(`font-family:${FONT_MONO}; font-size:14px; color:#10b981; display:flex; align-items:center; gap:9px;`)}>
                 <span style={css("width:9px; height:9px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981;")} />
-                ✓ Deployed — live across 7 environments
+                ✓ Deployed · live across 7 environments
               </span>
               <button onClick={deployAgain} style={css(`cursor:pointer; border:1px solid #1e293b; background:#0f1f31; border-radius:7px; padding:9px 16px; font-family:${FONT_MONO}; font-size:12px; color:#94a3b8;`)}>↻ deploy again</button>
             </>
@@ -881,7 +897,7 @@ export function JourneyExperience({
       <section style={css("max-width:1080px; margin:0 auto; padding:88px 24px;")}>
         <div style={css(`font-family:${FONT_MONO}; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#64748b; margin-bottom:14px;`)}>{"// network topology"}</div>
         <h2 style={css("font-size:clamp(26px,4vw,40px); font-weight:700; letter-spacing:-0.02em; margin:0 0 8px;")}>The career backbone</h2>
-        <p style={css("color:#94a3b8; font-size:15px; margin:0 0 32px; max-width:620px;")}>Each node is a role on the route. Tap one to inspect the traffic — twelve years of packets flowing from SRE to security architect.</p>
+        <p style={css("color:#94a3b8; font-size:15px; margin:0 0 32px; max-width:620px;")}>Each node is an AS on my career path. Tap each node to inspect the traffic.</p>
 
         <div style={css("position:relative; overflow-x:auto; padding:8px 0 18px;")}>
           <div style={css("position:relative; min-width:680px;")}>
@@ -1005,7 +1021,7 @@ export function JourneyExperience({
       <section style={css("max-width:1080px; margin:0 auto; padding:88px 24px;")}>
         <div style={css(`font-family:${FONT_MONO}; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#64748b; margin-bottom:14px;`)}>{"// interactive shell"}</div>
         <h2 style={css("font-size:clamp(26px,4vw,40px); font-weight:700; letter-spacing:-0.02em; margin:0 0 8px;")}>Explore from the command line</h2>
-        <p style={css("color:#94a3b8; font-size:15px; margin:0 0 26px; max-width:620px;")}>Prefer to navigate like an engineer? Run a command — or tap a chip to autofill.</p>
+        <p style={css("color:#94a3b8; font-size:15px; margin:0 0 26px; max-width:620px;")}>Prefer to navigate like an engineer? Run a command, or tap a chip to autofill.</p>
 
         <div style={css("display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;")}>
           {["whoami", "cat experience/sap", "git log", "stats", "deploy", "contact"].map((cmd) => (
@@ -1018,7 +1034,7 @@ export function JourneyExperience({
             <span style={css("width:11px; height:11px; border-radius:50%; background:#ef4444; opacity:0.7;")} />
             <span style={css("width:11px; height:11px; border-radius:50%; background:#f59e0b; opacity:0.6;")} />
             <span style={css("width:11px; height:11px; border-radius:50%; background:#10b981; opacity:0.7;")} />
-            <span style={css(`margin-left:10px; font-family:${FONT_MONO}; font-size:12px; color:#64748b;`)}>andrew@journey:~ — type &apos;help&apos;</span>
+            <span style={css(`margin-left:10px; font-family:${FONT_MONO}; font-size:12px; color:#64748b;`)}>andrew@journey:~ · type &apos;help&apos;</span>
           </div>
           <div ref={termBodyRef} onClick={focusTerm} style={css(`padding:18px; font-family:${FONT_MONO}; font-size:13.5px; line-height:1.65; height:320px; overflow-y:auto;`)}>
             {history.map((line, li) => (
