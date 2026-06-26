@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { SiteChrome } from "@/components/site-chrome";
+import { WormholeProvider } from "@/components/transition/WormholeTransition";
 import { getResume } from "@/lib/resume";
 import "./globals.css";
 
@@ -87,8 +88,11 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col bg-[var(--color-bg)] text-[var(--color-text)]">
-        {/* SiteChrome renders Nav + Footer, except on immersive routes (/journey) */}
-        <SiteChrome>{children}</SiteChrome>
+        {/* WormholeProvider mounts the fixed overlay canvas for route transitions */}
+        <WormholeProvider>
+          {/* SiteChrome renders Nav + Footer, except on immersive routes (/journey) */}
+          <SiteChrome>{children}</SiteChrome>
+        </WormholeProvider>
         {cfBeaconToken && (
           <Script
             src="https://static.cloudflareinsights.com/beacon.min.js"
