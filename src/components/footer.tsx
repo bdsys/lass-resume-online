@@ -1,4 +1,5 @@
 import { getVersion } from "@/lib/version";
+import { WormholeToggle } from "@/components/transition/WormholeTransition";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -24,6 +25,7 @@ export function Footer() {
               v{version.number} &middot; &ldquo;{version.name}&rdquo; &middot; {version.environment}
             </p>
           )}
+          <WormholeToggle />
         </div>
 
         <div className="flex items-center gap-5">

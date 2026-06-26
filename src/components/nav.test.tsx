@@ -8,6 +8,12 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Nav } from "./nav";
 
+// ── WormholeProvider mock (PlugInButton now calls useWormhole()) ──────────────
+
+vi.mock("@/components/transition/WormholeTransition", () => ({
+  useWormhole: () => ({ play: vi.fn(), busy: false, disabled: false, setDisabled: vi.fn() }),
+}));
+
 // ── matchMedia stub (needed by PlugInButton) ─────────────────────────────────
 
 beforeEach(() => {

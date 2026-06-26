@@ -12,6 +12,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { PlugInButton } from "./plug-in-button";
 
+// ── WormholeProvider mock (PlugInButton now calls useWormhole()) ──────────────
+
+const mockPlay = vi.fn();
+
+vi.mock("@/components/transition/WormholeTransition", () => ({
+  useWormhole: () => ({ play: mockPlay, busy: false, disabled: false, setDisabled: vi.fn() }),
+}));
+
 // ── matchMedia stub ───────────────────────────────────────────────────────────
 
 function stubMatchMedia(reducedMotion: boolean) {
@@ -112,6 +120,38 @@ describe("PlugInButton", () => {
         fireEvent.focus(link);
         fireEvent.blur(link);
       }).not.toThrow();
+    });
+  });
+
+  describe("click / wormhole", () => {
+    beforeEach(() => mockPlay.mockClear());
+
+    it("calls play() on a plain left-click (Plug in)", () => {
+      render(<PlugInButton href="/journey" label="Plug in…" />);
+      fireEvent.click(screen.getByRole("link"), { button: 0 });
+      expect(mockPlay).toHaveBeenCalledWith(
+        expect.objectContaining({ href: "/journey", direction: "plug" })
+      );
+    });
+
+    it("calls play() on a plain left-click (Unplug)", () => {
+      render(<PlugInButton href="/" label="◂ Unplug…" />);
+      fireEvent.click(screen.getByRole("link"), { button: 0 });
+      expect(mockPlay).toHaveBeenCalledWith(
+        expect.objectContaining({ href: "/", direction: "unplug" })
+      );
+    });
+
+    it("does NOT call play() on a meta-click (new-tab)", () => {
+      render(<PlugInButton href="/journey" />);
+      fireEvent.click(screen.getByRole("link"), { button: 0, metaKey: true });
+      expect(mockPlay).not.toHaveBeenCalled();
+    });
+
+    it("does NOT call play() on a ctrl-click", () => {
+      render(<PlugInButton href="/journey" />);
+      fireEvent.click(screen.getByRole("link"), { button: 0, ctrlKey: true });
+      expect(mockPlay).not.toHaveBeenCalled();
     });
   });
 });
