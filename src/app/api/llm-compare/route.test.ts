@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { LlmCompareResponse } from "./route";
 
 // ---------------------------------------------------------------------------
@@ -271,6 +271,103 @@ describe("per-provider failure isolation", () => {
     const data = (await res.json()) as LlmCompareResponse;
     expect("error" in data.claude).toBe(true);
     expect("error" in data.gemini).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Provider error messages — readable text, never raw provider JSON
+// ---------------------------------------------------------------------------
+
+/** Mimics the SDKs' API errors: an Error carrying the HTTP status. */
+function apiError(status: number, message: string): Error {
+  return Object.assign(new Error(message), { status });
+}
+
+// Verbatim error body production returned for a dead GOOGLE_API_KEY (Oct 2026)
+const GOOGLE_INVALID_KEY_BODY =
+  '{"error":{"code":400,"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"API_KEY_INVALID","domain":"googleapis.com","metadata":{"service":"generativelanguage.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"API key not valid. Please pass a valid API key."}]}}';
+
+async function geminiErrorFor(err: unknown): Promise<string> {
+  mockGeminiGenerate.mockRejectedValue(err);
+  const res = await POST(makeReq());
+  const data = (await res.json()) as LlmCompareResponse;
+  if (!("error" in data.gemini)) throw new Error("expected gemini error");
+  return data.gemini.error;
+}
+
+describe("provider error messages", () => {
+  let consoleError: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleError.mockRestore();
+  });
+
+  it("maps Google's 400 API_KEY_INVALID to an authentication error with the reason code", async () => {
+    const msg = await geminiErrorFor(apiError(400, GOOGLE_INVALID_KEY_BODY));
+    expect(msg).toBe("Gemini authentication error (API_KEY_INVALID) — API key may be invalid or expired.");
+  });
+
+  it("maps 401 to an authentication error", async () => {
+    const msg = await geminiErrorFor(apiError(401, "Unauthorized"));
+    expect(msg).toBe("Gemini authentication error (401) — API key may be invalid or expired.");
+  });
+
+  it("maps 403 to an authentication error", async () => {
+    const msg = await geminiErrorFor(apiError(403, "Forbidden"));
+    expect(msg).toBe("Gemini authentication error (403) — API key may be invalid or expired.");
+  });
+
+  it("maps 404 to a model-unavailable error", async () => {
+    const msg = await geminiErrorFor(
+      apiError(404, '{"error":{"code":404,"message":"This model models/gemini-2.5-flash is no longer available to new users."}}'),
+    );
+    expect(msg).toBe("Gemini model unavailable (404) — the configured model may have been retired.");
+  });
+
+  it("maps 429 to a rate-limit / quota error", async () => {
+    const msg = await geminiErrorFor(apiError(429, "Resource has been exhausted"));
+    expect(msg).toBe("Gemini is rate-limited or out of quota (429) — try again later.");
+  });
+
+  it("maps 5xx to a temporarily-unavailable error", async () => {
+    const msg = await geminiErrorFor(apiError(503, "The model is overloaded."));
+    expect(msg).toBe("Gemini is temporarily unavailable (503).");
+  });
+
+  it("maps other statuses to a generic failure with the status code", async () => {
+    const msg = await geminiErrorFor(apiError(400, '{"error":{"code":400,"status":"INVALID_ARGUMENT"}}'));
+    expect(msg).toBe("Gemini request failed (400).");
+  });
+
+  it("maps errors without a status to a generic failure", async () => {
+    const msg = await geminiErrorFor(new TypeError("fetch failed"));
+    expect(msg).toBe("Gemini request failed.");
+  });
+
+  it("still reports aborts as timeouts", async () => {
+    const abort = Object.assign(new Error("This operation was aborted"), { name: "AbortError" });
+    const msg = await geminiErrorFor(abort);
+    expect(msg).toBe("Gemini timed out — try a shorter prompt.");
+  });
+
+  it("applies the same mapping to Claude errors", async () => {
+    mockAnthropicCreate.mockRejectedValue(
+      apiError(401, '401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}'),
+    );
+    const res = await POST(makeReq());
+    const data = (await res.json()) as LlmCompareResponse;
+    if (!("error" in data.claude)) throw new Error("expected claude error");
+    expect(data.claude.error).toBe("Claude authentication error (401) — API key may be invalid or expired.");
+  });
+
+  it("logs the raw provider error server-side", async () => {
+    const err = apiError(400, GOOGLE_INVALID_KEY_BODY);
+    await geminiErrorFor(err);
+    expect(consoleError).toHaveBeenCalledWith("[llm-compare] Gemini error:", err);
   });
 });
 

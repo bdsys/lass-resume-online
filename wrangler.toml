@@ -7,6 +7,12 @@ main = ".open-next/worker.js"
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+# Workers Logs — persists invocation logs + console output (dashboard: Worker → Observability).
+# Inheritable, so this also covers [env.preview].
+[observability]
+enabled = true
+head_sampling_rate = 1
+
 # KV namespace for caching GitHub API responses (~1h TTL)
 # Get your real id with: wrangler kv namespace create GITHUB_CACHE
 # Then paste the output id here before deploying

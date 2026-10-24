@@ -135,23 +135,40 @@ async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
 
 /**
  * Converts raw provider errors into user-friendly messages.
- * Distinguishes timeout/abort from authentication failures so the UI
- * can give actionable feedback.
+ * Classifies by the HTTP status both SDKs attach to their API errors, so raw
+ * provider JSON never reaches the UI. The status (or Google's ErrorInfo reason)
+ * stays in the message to keep failures diagnosable from the browser; the full
+ * error is logged for Workers Logs.
  */
 function friendlyError(err: unknown, provider: string): string {
+  console.error(`[llm-compare] ${provider} error:`, err);
+
   const name    = err instanceof Error ? err.name : "";
   const message = err instanceof Error ? err.message : String(err);
   if (name === "AbortError" || message.toLowerCase().includes("abort")) {
     return `${provider} timed out — try a shorter prompt.`;
   }
-  if (
-    message.includes("401") ||
-    message.toLowerCase().includes("unauthorized") ||
-    message.toLowerCase().includes("authentication")
-  ) {
-    return `${provider} authentication error — API key may be invalid or expired.`;
+
+  const rawStatus = (err as { status?: unknown } | null)?.status;
+  const status    = typeof rawStatus === "number" ? rawStatus : undefined;
+  // Google reports a bad key as 400 + ErrorInfo reason API_KEY_INVALID, not 401
+  const reason    = /"reason":\s*"([A-Z_]+)"/.exec(message)?.[1];
+
+  if (status === 401 || status === 403 || reason === "API_KEY_INVALID") {
+    return `${provider} authentication error (${reason ?? status}) — API key may be invalid or expired.`;
   }
-  return message || `${provider} request failed.`;
+  if (status === 404) {
+    return `${provider} model unavailable (404) — the configured model may have been retired.`;
+  }
+  if (status === 429) {
+    return `${provider} is rate-limited or out of quota (429) — try again later.`;
+  }
+  if (status !== undefined && status >= 500) {
+    return `${provider} is temporarily unavailable (${status}).`;
+  }
+  return status !== undefined
+    ? `${provider} request failed (${status}).`
+    : `${provider} request failed.`;
 }
 
 // ---------------------------------------------------------------------------
