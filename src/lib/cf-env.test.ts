@@ -6,7 +6,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
 }));
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { cfEnv, getSecret, getKV, kvGet, kvSet } from "./cf-env";
+import { cfEnv, getSecret, getKV, kvGet, kvSet, runInBackground } from "./cf-env";
 
 const mockGet = vi.fn();
 const mockPut = vi.fn();
@@ -134,5 +134,28 @@ describe("kvSet", () => {
   it("is non-fatal when kv.put throws", async () => {
     mockPut.mockRejectedValue(new Error("put failed"));
     await expect(kvSet("mykey", { x: 1 }, 60)).resolves.toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// runInBackground
+// ---------------------------------------------------------------------------
+
+describe("runInBackground", () => {
+  it("hands the promise to ctx.waitUntil in the Workers runtime", async () => {
+    const waitUntil = vi.fn();
+    vi.mocked(getCloudflareContext).mockResolvedValue({ env: mockEnv, ctx: { waitUntil } } as never);
+    let finished = false;
+    const work = Promise.resolve().then(() => { finished = true; });
+    await runInBackground(work);
+    expect(waitUntil).toHaveBeenCalledOnce();
+    // The promise given to waitUntil must settle only after the work does
+    await waitUntil.mock.calls[0][0];
+    expect(finished).toBe(true);
+  });
+
+  it("does not throw outside the Workers runtime or when the work rejects", async () => {
+    vi.mocked(getCloudflareContext).mockRejectedValue(new Error("no context"));
+    await expect(runInBackground(Promise.reject(new Error("boom")))).resolves.toBeUndefined();
   });
 });

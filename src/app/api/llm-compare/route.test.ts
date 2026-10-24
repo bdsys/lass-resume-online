@@ -32,10 +32,17 @@ vi.mock("@/lib/rate-limit", () => ({
 
 vi.mock("@/lib/cf-env", () => ({ getSecret: vi.fn() }));
 
+vi.mock("@/lib/llm-models", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/llm-models")>()),
+  resolveClaudeModel: vi.fn(),
+  resolveGeminiModel: vi.fn(),
+}));
+
 import { POST } from "./route";
 import { getClientIp } from "@/lib/client-ip";
 import { checkPerCaller, checkDailyCap } from "@/lib/rate-limit";
 import { getSecret } from "@/lib/cf-env";
+import { resolveClaudeModel, resolveGeminiModel } from "@/lib/llm-models";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -74,6 +81,10 @@ beforeEach(() => {
     return undefined;
   });
 
+  // Default: newest Haiku (accepts disabled thinking) and Google's Flash-Lite alias
+  vi.mocked(resolveClaudeModel).mockResolvedValue({ id: "claude-haiku-5-5", thinkingDisabledSupported: true });
+  vi.mocked(resolveGeminiModel).mockResolvedValue("gemini-flash-lite-latest");
+
   // Default: successful LLM responses
   mockAnthropicCreate.mockResolvedValue(successAnthropicResponse());
   mockGeminiGenerate.mockResolvedValue(successGeminiResponse());
@@ -98,8 +109,8 @@ describe("successful comparison", () => {
     const data = (await res.json()) as LlmCompareResponse;
     if (!("text" in data.claude)) throw new Error("claude errored");
     if (!("text" in data.gemini)) throw new Error("gemini errored");
-    expect(data.claude.model).toBe("claude-haiku-4-5");
-    expect(data.gemini.model).toBe("gemini-3.5-flash-lite");
+    expect(data.claude.model).toBe("claude-haiku-5-5");
+    expect(data.gemini.model).toBe("gemini-flash-lite-latest");
     expect(typeof data.claude.latencyMs).toBe("number");
     expect(typeof data.gemini.latencyMs).toBe("number");
   });
@@ -140,8 +151,84 @@ describe("successful comparison", () => {
   it("requests Gemini with minimal thinking (3.x models take thinkingLevel, not thinkingBudget)", async () => {
     await POST(makeReq());
     const req = mockGeminiGenerate.mock.calls[0][0];
-    expect(req.model).toBe("gemini-3.5-flash-lite");
+    expect(req.model).toBe("gemini-flash-lite-latest");
     expect(req.config.thinkingConfig).toEqual({ thinkingLevel: "MINIMAL" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Model selection — resolved models are used and the served model is reported
+// ---------------------------------------------------------------------------
+
+describe("model selection", () => {
+  it("calls the resolved Claude model with thinking turned off", async () => {
+    await POST(makeReq());
+    const req = mockAnthropicCreate.mock.calls[0][0];
+    expect(req.model).toBe("claude-haiku-5-5");
+    expect(req.thinking).toEqual({ type: "disabled" });
+  });
+
+  it("reports the model Claude says served the request", async () => {
+    mockAnthropicCreate.mockResolvedValue({ ...successAnthropicResponse(), model: "claude-haiku-6" });
+    const data = (await (await POST(makeReq())).json()) as LlmCompareResponse;
+    if (!("text" in data.claude)) throw new Error("claude errored");
+    expect(data.claude.model).toBe("claude-haiku-6");
+  });
+
+  it("reports the model version behind Google's alias", async () => {
+    mockGeminiGenerate.mockResolvedValue({ text: "hi", modelVersion: "gemini-3.6-flash-lite" });
+    const data = (await (await POST(makeReq())).json()) as LlmCompareResponse;
+    if (!("text" in data.gemini)) throw new Error("gemini errored");
+    expect(data.gemini.model).toBe("gemini-3.6-flash-lite");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Retry once without thinking settings — a model swap can change what's accepted
+// ---------------------------------------------------------------------------
+
+describe("retry without thinking settings", () => {
+  function status400(message: string): Error {
+    return Object.assign(new Error(message), { status: 400 });
+  }
+
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("retries Gemini once without thinkingConfig after a 400", async () => {
+    mockGeminiGenerate
+      .mockRejectedValueOnce(status400('{"error":{"code":400,"message":"thinking_level is not supported"}}'))
+      .mockResolvedValueOnce(successGeminiResponse("second try"));
+    const data = (await (await POST(makeReq())).json()) as LlmCompareResponse;
+    expect(mockGeminiGenerate).toHaveBeenCalledTimes(2);
+    expect(mockGeminiGenerate.mock.calls[1][0].config.thinkingConfig).toBeUndefined();
+    if (!("text" in data.gemini)) throw new Error("gemini errored");
+    expect(data.gemini.text).toBe("second try");
+  });
+
+  it("does not retry Gemini when the key is invalid", async () => {
+    mockGeminiGenerate.mockRejectedValue(status400('{"error":{"details":[{"reason":"API_KEY_INVALID"}]}}'));
+    await POST(makeReq());
+    expect(mockGeminiGenerate).toHaveBeenCalledOnce();
+  });
+
+  it("retries Claude once without thinking settings after a 400", async () => {
+    mockAnthropicCreate
+      .mockRejectedValueOnce(status400("thinking.type: disabled is not supported"))
+      .mockResolvedValueOnce(successAnthropicResponse("second try"));
+    const data = (await (await POST(makeReq())).json()) as LlmCompareResponse;
+    expect(mockAnthropicCreate).toHaveBeenCalledTimes(2);
+    expect(mockAnthropicCreate.mock.calls[1][0].thinking).toBeUndefined();
+    if (!("text" in data.claude)) throw new Error("claude errored");
+    expect(data.claude.text).toBe("second try");
+  });
+
+  it("does not retry Claude when no thinking settings were sent", async () => {
+    vi.mocked(resolveClaudeModel).mockResolvedValue({ id: "claude-haiku-5-5" });
+    mockAnthropicCreate.mockRejectedValue(status400("bad request"));
+    await POST(makeReq());
+    expect(mockAnthropicCreate).toHaveBeenCalledOnce();
   });
 });
 
