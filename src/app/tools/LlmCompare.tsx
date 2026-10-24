@@ -195,7 +195,7 @@ export function LlmCompare() {
         />
         <ModelPanel
           label="Gemini Flash"
-          model="gemini-2.5-flash"
+          model="gemini-3.5-flash-lite"
           result={geminiResult}
           loading={isLoading}
         />
