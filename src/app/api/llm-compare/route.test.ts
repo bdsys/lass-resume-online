@@ -20,6 +20,7 @@ vi.mock("@google/genai", () => ({
   GoogleGenAI: vi.fn().mockImplementation(function () {
     return { models: { generateContent: mockGeminiGenerate } };
   }),
+  ThinkingLevel: { MINIMAL: "MINIMAL" },
 }));
 
 vi.mock("@/lib/client-ip", () => ({ getClientIp: vi.fn().mockReturnValue("1.2.3.4") }));
@@ -98,7 +99,7 @@ describe("successful comparison", () => {
     if (!("text" in data.claude)) throw new Error("claude errored");
     if (!("text" in data.gemini)) throw new Error("gemini errored");
     expect(data.claude.model).toBe("claude-haiku-4-5");
-    expect(data.gemini.model).toBe("gemini-2.5-flash");
+    expect(data.gemini.model).toBe("gemini-3.5-flash-lite");
     expect(typeof data.claude.latencyMs).toBe("number");
     expect(typeof data.gemini.latencyMs).toBe("number");
   });
@@ -134,6 +135,13 @@ describe("successful comparison", () => {
     await POST(makeReq());
     expect(mockAnthropicCreate).toHaveBeenCalledOnce();
     expect(mockGeminiGenerate).toHaveBeenCalledOnce();
+  });
+
+  it("requests Gemini with minimal thinking (3.x models take thinkingLevel, not thinkingBudget)", async () => {
+    await POST(makeReq());
+    const req = mockGeminiGenerate.mock.calls[0][0];
+    expect(req.model).toBe("gemini-3.5-flash-lite");
+    expect(req.config.thinkingConfig).toEqual({ thinkingLevel: "MINIMAL" });
   });
 });
 
