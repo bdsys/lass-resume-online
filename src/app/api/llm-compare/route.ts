@@ -1,8 +1,9 @@
 /**
  * POST /api/llm-compare
  *
- * Runs the same prompt against Claude Haiku and Gemini Flash in parallel,
- * returning both responses for side-by-side comparison.
+ * Runs the same prompt against the newest Claude Haiku and Gemini Flash-Lite in
+ * parallel, returning both responses for side-by-side comparison. Model choice
+ * lives in src/lib/llm-models.ts; each result reports the model that served it.
  *
  * Body: { prompt?: string }
  *   - prompt defaults to DEFAULT_PROMPT if omitted.
@@ -15,12 +16,21 @@
  * Required secrets (wrangler secret put / .env.local for dev):
  *   ANTHROPIC_API_KEY — Anthropic API key.
  *   GOOGLE_API_KEY    — Google AI Studio / Gemini API key.
+ *
+ * Optional overrides (pin a model instead of auto-selecting the newest):
+ *   CLAUDE_MODEL, GEMINI_MODEL
  */
 
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { getClientIp } from "@/lib/client-ip";
 import { getSecret } from "@/lib/cf-env";
+import {
+  claudeThinkingParams,
+  resolveClaudeModel,
+  resolveGeminiModel,
+  type ClaudeModelChoice,
+} from "@/lib/llm-models";
 import { checkPerCaller, checkDailyCap } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -31,17 +41,13 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_PROMPT = "Help me plan a fun day in Everett today.";
 const MAX_PROMPT_CHARS = 500;
-const CLAUDE_MAX_TOKENS = 1024;
-// Thinking tokens count against maxOutputTokens and can cut off the visible response.
-// Gemini 3.x models take thinkingLevel (not thinkingBudget); use MINIMAL, the lowest
-// level 3.5 Flash-Lite supports, and give the output adequate room.
+// Thinking tokens count against the output cap and can cut off the visible response.
+// Both sides ask for the least thinking the model allows (Claude: per its reported
+// capabilities; Gemini 3.x: thinkingLevel MINIMAL) and get the same headroom.
+const CLAUDE_MAX_TOKENS = 2048;
 const GEMINI_MAX_TOKENS = 2048;
 const FETCH_TIMEOUT_MS = 30_000;
 const DAILY_CAP = 500;
-
-const CLAUDE_MODEL = "claude-haiku-4-5";
-// 2.5 models are restricted to accounts that used them before, so new API keys get a 404.
-const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -65,22 +71,34 @@ export interface LlmCompareResponse {
 // Per-provider callers
 // ---------------------------------------------------------------------------
 
-async function callClaude(prompt: string, apiKey: string): Promise<LlmResult> {
+async function callClaude(prompt: string, apiKey: string, choice: ClaudeModelChoice): Promise<LlmResult> {
   const client = new Anthropic({ apiKey });
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-  const start = Date.now();
-  try {
-    const message = await client.messages.create(
+  const thinkingParams = claudeThinkingParams(choice);
+  const create = (extra: ReturnType<typeof claudeThinkingParams>) =>
+    client.messages.create(
       {
-        model: CLAUDE_MODEL,
+        model: choice.id,
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: "user", content: prompt }],
+        ...extra,
       },
       { signal: controller.signal },
     );
+
+  const start = Date.now();
+  try {
+    let message;
+    try {
+      message = await create(thinkingParams);
+    } catch (err) {
+      if (Object.keys(thinkingParams).length === 0 || !isRetryable400(err)) throw err;
+      console.error("[llm-compare] Claude rejected thinking settings; retrying without:", err);
+      message = await create({});
+    }
 
     const text =
       message.content
@@ -90,7 +108,7 @@ async function callClaude(prompt: string, apiKey: string): Promise<LlmResult> {
 
     return {
       text,
-      model: CLAUDE_MODEL,
+      model: message.model ?? choice.id,
       latencyMs: Date.now() - start,
       inputTokens: message.usage?.input_tokens,
       outputTokens: message.usage?.output_tokens,
@@ -100,28 +118,40 @@ async function callClaude(prompt: string, apiKey: string): Promise<LlmResult> {
   }
 }
 
-async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
+async function callGemini(prompt: string, apiKey: string, model: string): Promise<LlmResult> {
   const ai = new GoogleGenAI({ apiKey });
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-  const start = Date.now();
-  try {
-    const response = await ai.models.generateContent({
-      model: GEMINI_MODEL,
+  const generate = (withThinking: boolean) =>
+    ai.models.generateContent({
+      model,
       contents: prompt,
       config: {
         maxOutputTokens: GEMINI_MAX_TOKENS,
-        thinkingConfig:  { thinkingLevel: ThinkingLevel.MINIMAL },
+        ...(withThinking ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } } : {}),
         abortSignal:     controller.signal,
       },
     });
 
+  const start = Date.now();
+  try {
+    let response;
+    try {
+      response = await generate(true);
+    } catch (err) {
+      // The -latest alias can move to a model that rejects this thinking level
+      if (!isRetryable400(err)) throw err;
+      console.error("[llm-compare] Gemini rejected thinking settings; retrying without:", err);
+      response = await generate(false);
+    }
+
     const text = response.text ?? "";
     return {
       text,
-      model: GEMINI_MODEL,
+      // The alias resolves server-side; modelVersion names the release that answered
+      model: response.modelVersion ?? model,
       latencyMs: Date.now() - start,
     };
   } finally {
@@ -132,6 +162,21 @@ async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
 // ---------------------------------------------------------------------------
 // Error formatting
 // ---------------------------------------------------------------------------
+
+/** HTTP status both SDKs attach to their API errors, if any. */
+function statusOf(err: unknown): number | undefined {
+  const status = (err as { status?: unknown } | null)?.status;
+  return typeof status === "number" ? status : undefined;
+}
+
+/**
+ * A 400 that may be caused by our thinking settings (the model changed under us).
+ * An invalid key is also a 400 at Google, but retrying can't fix it.
+ */
+function isRetryable400(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return statusOf(err) === 400 && !message.includes("API_KEY_INVALID");
+}
 
 /**
  * Converts raw provider errors into user-friendly messages.
@@ -149,8 +194,7 @@ function friendlyError(err: unknown, provider: string): string {
     return `${provider} timed out — try a shorter prompt.`;
   }
 
-  const rawStatus = (err as { status?: unknown } | null)?.status;
-  const status    = typeof rawStatus === "number" ? rawStatus : undefined;
+  const status    = statusOf(err);
   // Google reports a bad key as 400 + ErrorInfo reason API_KEY_INVALID, not 401
   const reason    = /"reason":\s*"([A-Z_]+)"/.exec(message)?.[1];
 
@@ -242,10 +286,16 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  // 4. Fire both calls in parallel; surface per-provider errors without failing the whole request
+  // 4. Pick models (cached lookups; never blocks on the Models API)
+  const [claudeChoice, geminiModel] = await Promise.all([
+    resolveClaudeModel(anthropicKey),
+    resolveGeminiModel(),
+  ]);
+
+  // 5. Fire both calls in parallel; surface per-provider errors without failing the whole request
   const [claudeOutcome, geminiOutcome] = await Promise.allSettled([
-    callClaude(prompt, anthropicKey),
-    callGemini(prompt, googleKey),
+    callClaude(prompt, anthropicKey, claudeChoice),
+    callGemini(prompt, googleKey, geminiModel),
   ]);
 
   const claude: LlmCompareResponse["claude"] =

@@ -73,6 +73,12 @@ describe("initial render", () => {
     expect(placeholders).toHaveLength(2);
   });
 
+  it("names the auto-selected models before any response", () => {
+    render(<LlmCompare />);
+    expect(screen.getByText("newest Haiku")).toBeInTheDocument();
+    expect(screen.getByText("gemini-flash-lite-latest")).toBeInTheDocument();
+  });
+
   it("shows the Claude Haiku and Gemini Flash panel labels", () => {
     render(<LlmCompare />);
     expect(screen.getByText(/claude haiku/i)).toBeInTheDocument();
@@ -129,6 +135,20 @@ describe("success state", () => {
     await waitFor(() => {
       expect(screen.getByText(/visit the waterfront/i)).toBeInTheDocument();
       expect(screen.getByText(/farmers market/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows the model that served each response", async () => {
+    const body = successResponse();
+    body.claude = { text: "a", model: "claude-haiku-6", latencyMs: 800 };
+    body.gemini = { text: "b", model: "gemini-3.6-flash-lite", latencyMs: 600 };
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(okFetch(body));
+    render(<LlmCompare />);
+    await clickCompare();
+
+    await waitFor(() => {
+      expect(screen.getByText("claude-haiku-6")).toBeInTheDocument();
+      expect(screen.getByText("gemini-3.6-flash-lite")).toBeInTheDocument();
     });
   });
 

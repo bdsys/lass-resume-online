@@ -13,6 +13,14 @@ binding = "ASSETS"
 enabled = true
 head_sampling_rate = 1
 
+# LLM comparison models are auto-selected (src/lib/llm-models.ts): the newest
+# Claude Haiku via the Models API, and Google's gemini-flash-lite-latest alias.
+# To pin a model instead, uncomment and deploy. `vars` are NOT inherited by
+# [env.preview] — repeat them under [env.preview.vars] to pin preview too.
+# [vars]
+# CLAUDE_MODEL = "claude-haiku-5-5"
+# GEMINI_MODEL = "gemini-3.5-flash-lite"
+
 # KV namespace for caching GitHub API responses (~1h TTL)
 # Get your real id with: wrangler kv namespace create GITHUB_CACHE
 # Then paste the output id here before deploying

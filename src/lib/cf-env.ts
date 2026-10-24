@@ -118,3 +118,19 @@ export async function kvSet<T>(key: string, value: T, ttlSeconds: number): Promi
     // Non-fatal — continue without caching
   }
 }
+
+/**
+ * Lets work finish after the response is sent. In the Workers runtime the
+ * promise goes to ctx.waitUntil so the isolate isn't torn down mid-flight;
+ * elsewhere (dev / Vitest) it simply runs. Rejections are swallowed — callers
+ * log their own failures.
+ */
+export async function runInBackground(work: Promise<unknown>): Promise<void> {
+  const settled = work.catch(() => {});
+  try {
+    const { ctx } = await getCloudflareContext({ async: true });
+    ctx.waitUntil(settled);
+  } catch {
+    // No Workers context — the promise still runs on its own
+  }
+}
