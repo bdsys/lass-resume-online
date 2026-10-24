@@ -18,7 +18,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { getClientIp } from "@/lib/client-ip";
 import { getSecret } from "@/lib/cf-env";
 import { checkPerCaller, checkDailyCap } from "@/lib/rate-limit";
@@ -32,15 +32,16 @@ export const dynamic = "force-dynamic";
 const DEFAULT_PROMPT = "Help me plan a fun day in Everett today.";
 const MAX_PROMPT_CHARS = 500;
 const CLAUDE_MAX_TOKENS = 1024;
-// Gemini 2.5 Flash has thinking enabled by default; thinking tokens count against
-// maxOutputTokens and cut off the visible response. Disable thinking (thinkingBudget: 0)
-// and give the output adequate room.
+// Thinking tokens count against maxOutputTokens and can cut off the visible response.
+// Gemini 3.x models take thinkingLevel (not thinkingBudget); use MINIMAL, the lowest
+// level 3.5 Flash-Lite supports, and give the output adequate room.
 const GEMINI_MAX_TOKENS = 2048;
 const FETCH_TIMEOUT_MS = 30_000;
 const DAILY_CAP = 500;
 
 const CLAUDE_MODEL = "claude-haiku-4-5";
-const GEMINI_MODEL = "gemini-2.5-flash";
+// 2.5 models are restricted to accounts that used them before, so new API keys get a 404.
+const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -112,7 +113,7 @@ async function callGemini(prompt: string, apiKey: string): Promise<LlmResult> {
       contents: prompt,
       config: {
         maxOutputTokens: GEMINI_MAX_TOKENS,
-        thinkingConfig:  { thinkingBudget: 0 },
+        thinkingConfig:  { thinkingLevel: ThinkingLevel.MINIMAL },
         abortSignal:     controller.signal,
       },
     });
