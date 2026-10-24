@@ -17,6 +17,7 @@ const COOLDOWN_SECONDS = 60;
 
 interface PanelProps {
   label: string;
+  /** Shown until a response arrives; then the model that actually served it. */
   model: string;
   result: LlmResult | { error: string } | null;
   loading: boolean;
@@ -34,7 +35,9 @@ function ModelPanel({ label, model, result, loading }: PanelProps) {
         <span className="font-mono text-xs font-semibold text-[var(--color-accent)]">
           {label}
         </span>
-        <span className="font-mono text-xs text-[var(--color-text-muted)]">{model}</span>
+        <span className="font-mono text-xs text-[var(--color-text-muted)]">
+          {result && "model" in result ? result.model : model}
+        </span>
       </div>
 
       {/* Content */}
@@ -189,13 +192,13 @@ export function LlmCompare() {
       <div className="grid gap-4 md:grid-cols-2">
         <ModelPanel
           label="Claude Haiku"
-          model="claude-haiku-4-5"
+          model="newest Haiku"
           result={claudeResult}
           loading={isLoading}
         />
         <ModelPanel
-          label="Gemini Flash"
-          model="gemini-3.5-flash-lite"
+          label="Gemini Flash-Lite"
+          model="gemini-flash-lite-latest"
           result={geminiResult}
           loading={isLoading}
         />

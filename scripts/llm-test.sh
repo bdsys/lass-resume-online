@@ -90,20 +90,30 @@ else
   fail "4. prompt is echoed in response"
 fi
 
-# Claude model string
+# Model strings — models are auto-selected (newest Haiku / gemini-flash-lite-latest),
+# so assert they're reported, not which release they are
 CLAUDE_MODEL=$(echo "$RESPONSE_BODY" | jq -r '.claude.model // empty' 2>/dev/null)
-if [ "$CLAUDE_MODEL" = "claude-haiku-4-5" ]; then
-  pass "5. claude.model = claude-haiku-4-5"
+if [ -n "$CLAUDE_MODEL" ]; then
+  pass "5. claude.model reported ($CLAUDE_MODEL)"
 else
-  fail "5. claude.model = claude-haiku-4-5 (got \"$CLAUDE_MODEL\")"
+  fail "5. claude.model reported"
 fi
 
-# Gemini model string
 GEMINI_MODEL=$(echo "$RESPONSE_BODY" | jq -r '.gemini.model // empty' 2>/dev/null)
-if [ "$GEMINI_MODEL" = "gemini-2.5-flash" ]; then
-  pass "6. gemini.model = gemini-2.5-flash"
+if [ -n "$GEMINI_MODEL" ]; then
+  pass "6. gemini.model reported ($GEMINI_MODEL)"
 else
-  fail "6. gemini.model = gemini-2.5-flash (got \"$GEMINI_MODEL\")"
+  fail "6. gemini.model reported"
+fi
+
+# Record which models answered (GitHub Actions job summary)
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+  {
+    echo "| Provider | Model that answered | Result |"
+    echo "|---|---|---|"
+    echo "| Claude | ${CLAUDE_MODEL:-—} | $(echo "$RESPONSE_BODY" | jq -r '.claude.error // "ok"' 2>/dev/null) |"
+    echo "| Gemini | ${GEMINI_MODEL:-—} | $(echo "$RESPONSE_BODY" | jq -r '.gemini.error // "ok"' 2>/dev/null) |"
+  } >> "$GITHUB_STEP_SUMMARY"
 fi
 
 # latencyMs present and numeric
