@@ -17,7 +17,7 @@ function successResponse(
   return {
     prompt,
     claude: { text: claudeText, model: "claude-haiku-4-5", latencyMs: 800, inputTokens: 10, outputTokens: 50 },
-    gemini: { text: geminiText, model: "gemini-2.5-flash", latencyMs: 600 },
+    gemini: { text: geminiText, model: "gemini-3.5-flash-lite", latencyMs: 600 },
   };
 }
 
@@ -256,7 +256,7 @@ describe("per-provider error isolation", () => {
     const body: Partial<LlmCompareResponse> = {
       prompt: DEFAULT_PROMPT,
       claude: { error: "Anthropic timeout" },
-      gemini: { text: "Gemini is fine", model: "gemini-2.5-flash", latencyMs: 500 },
+      gemini: { text: "Gemini is fine", model: "gemini-3.5-flash-lite", latencyMs: 500 },
     };
     vi.mocked(globalThis.fetch).mockResolvedValueOnce(okFetch(body));
     render(<LlmCompare />);
